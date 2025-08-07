@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Where(clause = "is_deleted = false")
+@Where(clause = "is_deleted = false") //자동 필터링
 public class Users {
 
     @Id
@@ -84,7 +84,8 @@ public class Users {
 
     @Column(nullable = false, unique = true)
     private String username;
-    private String password;
+
+    private String password; //BCrypt 암호화되어 저장
     private String email;
 
     @Column(name = "is_deleted", nullable = false)
