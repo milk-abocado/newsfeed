@@ -1,6 +1,6 @@
 package com.example.newsfeed.service;
 
-import com.example.newsfeed.dto.post.PostUpdateRequestDto;
+import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.PostImages;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.repository.PostImageRepository;
