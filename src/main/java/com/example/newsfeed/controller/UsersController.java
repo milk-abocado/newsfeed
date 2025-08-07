@@ -1,5 +1,6 @@
 package com.example.newsfeed.controller;
 
+import com.example.newsfeed.dto.DeleteUsersRequest;
 import com.example.newsfeed.repository.UsersRepository;
 import com.example.newsfeed.service.UsersService;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,12 @@ public class UsersController {
     private final UsersService usersService;
 
     @DeleteMapping("/me")
-    public ResponseEntity<String> deleteCurrentUser(Authentication authentication) {
+    public ResponseEntity<String> deleteCurrentUser(
+            @RequstBody DeleteUsersRequest request,
+            Authentication authentication) {
+
         String username = authentication.getName();  // 인증된 사용자명
-        usersService.softDeleteUser(username);
+        usersService.softDeleteUser(username, request.getPassword());
         return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
     }
 }
