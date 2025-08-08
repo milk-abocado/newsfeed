@@ -4,12 +4,12 @@ package com.example.newsfeed.service;
 import com.example.newsfeed.config.PasswordEncoder;
 import com.example.newsfeed.dto.UsersRequestDto;
 import com.example.newsfeed.entity.Users;
-import com.example.newsfeed.repository.EmailRepository;
 import com.example.newsfeed.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -55,6 +55,19 @@ public class UsersService {
         );
 
         return usersRepository.save(user);
+    }
+
+    // login
+    public Users login(String email, String rawPassword) {
+        Optional<Users> userEmail = usersRepository.findByEmail(email);
+        if (userEmail.isEmpty()) {
+            throw new IllegalArgumentException("등록되지 않은 이메일입니다.");
+        }
+        Users user = userEmail.get();
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        return user;
     }
 
 }

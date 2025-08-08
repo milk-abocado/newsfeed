@@ -1,10 +1,12 @@
 package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.EmailRequestDto;
+import com.example.newsfeed.dto.UsersLoginRequestDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.dto.UsersRequestDto;
 import com.example.newsfeed.service.EmailService;
 import com.example.newsfeed.service.UsersService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +61,37 @@ public class UsersController {
             return new ResponseEntity<>("인증 완료", HttpStatus.OK);
         }
         return new ResponseEntity<>("인증 실패", HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UsersLoginRequestDto request, HttpSession session) {
+        try {
+            Users user = usersService.login(request.getEmail(), request.getPassword());
+
+            // 세션에 로그인 사용자 정보 저장
+            session.setAttribute("user", user);
+
+            return ResponseEntity.ok("로그인 성공");
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+
+        Object userObj = session.getAttribute("user");
+
+        if (userObj == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("로그인 하지 않았습니다.");
+        }
+
+        Users user = (Users) userObj;  // 캐스팅
+        Long userId = user.getId();
+        String email = user.getEmail();
+
+        session.invalidate();
+        return ResponseEntity.ok("User " + userId + " (" + email + "): 로그아웃 완료");
     }
 }
