@@ -50,7 +50,7 @@ public class Users {
     private String securityAnswer;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt; //soft delete 시각 기록
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
