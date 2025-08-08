@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Setter
 public class DeleteUsersRequest {
     private String password;
-    private String username;
+    private String name;
 }

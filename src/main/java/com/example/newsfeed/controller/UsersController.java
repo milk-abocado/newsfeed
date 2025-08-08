@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -15,13 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsersController {
     private final UsersService usersService;
 
-    @DeleteMapping("/me")
-    public ResponseEntity<String> deleteCurrentUser(
-            @RequstBody DeleteUsersRequest request,
-            Authentication authentication) {
-
-        String username = authentication.getName();  // 인증된 사용자명
-        usersService.softDeleteUser(username, request.getPassword());
-        return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
+    @DeleteMapping("/delete")
+    public String deleteUser(@RequestParam String name, @RequestParam String password) {
+        usersService.deleteAccount(name, password);
+        return "회원 탈퇴가 완료되었습니다.";
     }
+
 }
