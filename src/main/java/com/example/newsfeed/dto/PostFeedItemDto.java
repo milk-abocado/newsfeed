@@ -1,5 +1,6 @@
 package com.example.newsfeed.dto;
 
+import com.example.newsfeed.entity.Posts;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,4 +19,18 @@ public class PostFeedItemDto {
     private String content;             // 게시물 내용
     private List<String> imageUrls;     // 게시물 이미지 URL 리스트
     private LocalDateTime createdAt;    // 게시물 생성 시간
+
+    // Entity → DTO 변환 메서드
+    public static PostFeedItemDto fromEntity(Posts post) {
+        return new PostFeedItemDto(
+                post.getId(),
+                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getContent(),
+                post.getImages().stream()
+                        .map(img -> img.getImageUrl())
+                        .toList(),
+                post.getCreatedAt()
+        );
+    }
 }
