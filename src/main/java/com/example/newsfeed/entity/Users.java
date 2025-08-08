@@ -2,17 +2,17 @@ package com.example.newsfeed.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.engine.spi.Status;
 
 import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "users")
+@Table(name = "users") //DB 테이블명
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Where(clause = "is_deleted = false") //자동 필터링
 public class Users {
 
     @Id
@@ -50,7 +50,7 @@ public class Users {
     private String securityAnswer;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; //soft delete 시각 기록
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -84,12 +84,6 @@ public class Users {
 
     @Column(nullable = false, unique = true)
     private String username;
-
-    private String password; //BCrypt 암호화되어 저장
-    private String email;
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted = false;
 
     public void softDelete() {
     this.isDeleted = true;
