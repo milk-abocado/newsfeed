@@ -82,9 +82,6 @@ public class Users {
 //        this.updatedAt = LocalDateTime.now();
 //    }
 
-    @Column(nullable = false, unique = true)
-    private String username;
-
     public void softDelete() {
     this.isDeleted = true;
     }
