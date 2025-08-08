@@ -33,6 +33,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'at.favre.lib:bcrypt:0.10.2'
+	implementation 'org.springframework.security:spring-security-crypto'
 }
 
 tasks.named('test') {

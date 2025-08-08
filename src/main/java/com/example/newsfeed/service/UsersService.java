@@ -4,6 +4,7 @@ package com.example.newsfeed.service;
 import com.example.newsfeed.config.PasswordEncoder;
 import com.example.newsfeed.dto.UsersRequestDto;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.repository.EmailRepository;
 import com.example.newsfeed.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 public class UsersService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     // password 형식
     private static final Pattern password_Pattern = Pattern.compile("^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$");
@@ -25,17 +27,19 @@ public class UsersService {
 
     @Transactional
     public Users signup(UsersRequestDto request) {
-
-        if(!password_Pattern.matcher(request.getPassword()).matches()) {
-            throw new IllegalArgumentException("비밀번호는 영문 + 숫자 + 특수문자를 최소 1글자씩 포함하며, 8자 이상이어야 합니다.");
-        }
-
         if(!email_Pattern.matcher(request.getEmail()).matches()) {
             throw new IllegalArgumentException("이메일 형식이 올바르지 않습니다.");
         }
-
         if (usersRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        }
+
+        if (!emailService.isEmailVerified(request.getEmail())) {
+            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
+        }
+
+        if(!password_Pattern.matcher(request.getPassword()).matches()) {
+            throw new IllegalArgumentException("비밀번호는 영문 + 숫자 + 특수문자를 최소 1글자씩 포함하며, 8자 이상이어야 합니다.");
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());

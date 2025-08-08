@@ -10,4 +10,10 @@ public class PasswordEncoder {
     public static String encode(String rawPassword) {
         return BCrypt.withDefaults().hashToString(BCrypt.MIN_COST, rawPassword.toCharArray());
     }
+
+    // 같은 비밀번호인지 확인
+    public boolean matches(String rawPassword, String encodedPassword) {
+        BCrypt.Result result = BCrypt.verifyer().verify(rawPassword.toCharArray(), encodedPassword);
+        return result.verified;
+    }
 }
