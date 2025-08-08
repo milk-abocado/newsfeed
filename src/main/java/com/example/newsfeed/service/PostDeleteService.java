@@ -4,7 +4,9 @@ import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +21,11 @@ public class PostDeleteService {
 
         // postId에 해당하는 게시물을 DB에서 조회 (없으면 404 예외 발생)
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 게시물이 존재하지 않습니다."));
 
         // 현재 로그인한 userId가 이 게시물의 작성자가 아닌 경우 403 예외 발생
         if (!post.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("본인 게시물만 삭제할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 게시물만 삭제할 수 있습니다.");
         }
 
         // 실제 삭제하지 않고, isDeleted 플래그만 true로 변경 (소프트 삭제)
