@@ -28,6 +28,7 @@ public class Users {
     @Column(length = 100)
     private String name;
 
+
     @Column(length = 100)
     private String nickname;
 
