@@ -1,0 +1,135 @@
+package com.example.newsfeed.service;
+
+import com.example.newsfeed.dto.PostPageResponseDto;
+import com.example.newsfeed.dto.PostRequestDto;
+import com.example.newsfeed.dto.PostResponseDto;
+import com.example.newsfeed.entity.PostImages;
+import com.example.newsfeed.entity.Posts;
+import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PostService {
+
+    private final PostRepository postRepository;
+
+    // 게시물 생성
+    // @param requestDto 요청 데이터 (content, image URL 등)
+    // @param user 게시물 작성자 (현재는 mock 유저)
+    // @return 생성된 게시물의 응답 DTO
+    public PostResponseDto createPost(PostRequestDto requestDto, Users user) {
+        // 테스트용 mock 유저에 nickname이 없는 경우 임시 설정
+        if (user.getNickname() == null) {
+            user.setNickname("user"); // 임시 설정
+        }
+
+        // 1. 게시물 엔티티 생성
+        Posts post = Posts.builder()
+                .user(user)
+                .content(requestDto.getContent())
+                .build();
+
+        // 2. 이미지가 존재할 경우, 이미지 엔티티 생성 후 게시물과 연결
+        if (requestDto.getImageUrlList() != null) {
+            requestDto.getImageUrlList().forEach(url -> {
+                PostImages image = PostImages.builder()
+                        .imageUrl(url)
+                        .post(post)   // 연관 설정
+                        .build();
+                post.addImage(image); // 양방향 연관관계 설정
+            });
+        }
+
+        // 3. 게시물 저장 (cascade로 인해 이미지도 함께 저장됨)
+        Posts savedPost = postRepository.save(post);
+
+        // 4. 저장 직후 연관 데이터(postImageList)는 LAZY 로딩 상태일 수 있으므로 다시 조회
+        Posts fullPost = postRepository.findById(savedPost.getId())
+                .orElseThrow(() -> new RuntimeException("게시물 저장 후 조회 실패"));
+
+        // 5. 응답 DTO 생성 및 반환
+        return new PostResponseDto(
+                fullPost.getId(),
+                fullPost.getUser().getId(),
+                fullPost.getUser().getNickname(),
+                fullPost.getContent(),
+                fullPost.getPostImageList().stream()
+                        .map(PostImages::getImageUrl)
+                        .collect(Collectors.toList()),
+                fullPost.getCreatedAt(),
+                fullPost.getUpdatedAt()
+        );
+    }
+
+    // 게시물 단건 조회
+    // @param postId 게시물 ID
+    // @param currentUser 현재 로그인한 유저
+    // @return 해당 게시물의 응답 DTO
+    public PostResponseDto getPostById(Long postId, Users currentUser) {
+        // 1. 사용자 인증 확인
+        if (currentUser == null) {
+            throw new IllegalArgumentException("401: 로그인하지 않은 사용자입니다.");
+        }
+
+        // 2. 게시물 존재 여부 확인
+        Posts post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("404: 게시물이 존재하지 않습니다."));
+
+        // 3. 응답 DTO 생성 및 반환
+        return new PostResponseDto(
+                post.getId(),
+                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getContent(),
+                post.getPostImageList().stream()
+                        .map(PostImages::getImageUrl)
+                        .collect(Collectors.toList()),
+                post.getCreatedAt(),
+                post.getUpdatedAt()
+        );
+    }
+
+    // 게시물 전체 조회 (페이징 처리)
+    // @param page 요청한 페이지 번호 (0부터 시작)
+    // @param size 한 페이지에 조회할 게시물 개수
+    // @return 페이징 처리된 게시물 리스트 DTO
+    public PostPageResponseDto getAllPosts(int page, int size) {
+        // 1. 페이징 요청 설정 (최신순 정렬)
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        // 2. 페이징 조회
+        Page<Posts> postsPage = postRepository.findAll(pageRequest);
+
+        // 3. 각 게시물마다 DTO로 변환
+        List<PostResponseDto> postDtosList = postsPage.getContent().stream()
+                .map(post -> new PostResponseDto(
+                        post.getId(),
+                        post.getUser().getId(),
+                        post.getUser().getNickname(),
+                        post.getContent(),
+                        post.getPostImageList().stream()
+                                .map(PostImages::getImageUrl)
+                                .collect(Collectors.toList()),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        // 4. 페이징 결과 포함한 DTO 반환
+        return new PostPageResponseDto(
+                postDtosList,
+                postsPage.getNumber(),
+                postsPage.getSize(),
+                postsPage.getTotalElements(),
+                postsPage.getTotalPages()
+        );
+    }
+}
