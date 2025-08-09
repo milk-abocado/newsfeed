@@ -72,6 +72,16 @@ public class Users {
         this.isDeleted = false;
     }
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // 프로필 수정 기능
 //    public void update(String nickname, String bio, String school, String profileImage) {
 //        this.nickname = nickname;
