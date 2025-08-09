@@ -20,14 +20,14 @@ public class UsersService {
     public void deleteAccount(String email, String password) {
 
         //1. 비밀번호 미입력(400)
-        //1-1) 이메일로 사용자 조회(Users 존재하는지 여부)
-        Users users = usersRepository.findByName(email)
-                .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
-
-        //1-2) 비밀번호 미입력
+        //1-1) 비밀번호 미입력
         if (password == null || password.trim().isEmpty()) {
             throw new PasswordRequiredException("비밀번호가 필요합니다.");
         }
+
+        //1-2) 이메일로 사용자 조회(Users 존재하는지 여부)
+        Users users = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         //1-3) 이미 탈퇴한 경우
         if (users.getIsDeleted()) {
