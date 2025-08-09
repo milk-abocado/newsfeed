@@ -22,7 +22,7 @@ public class UserController {
         return userService.getUserProfile(userId);
     }
 
-    // 프로필 수정 (헤더의 X-USER-ID 사용)
+    // 프로필 수정
     @PatchMapping("/{userID}")
     public String updateUserProfile(@RequestBody UserProfileUpdateRequestDto dto,
                                     HttpSession session) {
@@ -36,7 +36,7 @@ public class UserController {
         return "프로필 수정이 완료 되었습니다.";
     }
 
-    // 비밀번호 변경 (헤더의 X-USER-ID 사용)
+    // 비밀번호 변경
     @PatchMapping("/{usersID}/change")
     public String changePassword(@PathVariable("usersID") Long usersID,
                                  HttpSession session,
