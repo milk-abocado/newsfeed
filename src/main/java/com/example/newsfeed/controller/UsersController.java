@@ -17,8 +17,8 @@ public class UsersController {
     private final UsersService usersService;
 
     @DeleteMapping("/delete")
-    public String deleteUser(@RequestParam String name, @RequestParam String password) {
-        usersService.deleteAccount(name, password);
+    public String deleteUser(@RequestParam String email, @RequestParam String password) {
+        usersService.deleteAccount(email, password);
         return "회원 탈퇴가 완료되었습니다.";
     }
 
