@@ -6,7 +6,7 @@ import com.example.newsfeed.dto.FollowResponseDto;
 import com.example.newsfeed.entity.Follows;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.repository.FollowsRepository;
-import com.example.newsfeed.repository.UsersRepository;
+import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 public class FollowService {
 
     private final FollowsRepository followsRepository;
-    private final UsersRepository usersRepository;
+    private final UserRepository userRepository;
 
     // 팔로우 요청 처리
     public FollowResponseDto sendFollowRequest(FollowRequestDto followRequestDto, Long followerId) {
-        Users follower = usersRepository.findById(followerId)
+        Users follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new IllegalArgumentException("팔로우하는 사용자를 찾을 수 없습니다."));
 
-        Users following = usersRepository.findById(followRequestDto.getFollowId())
+        Users following = userRepository.findById(followRequestDto.getFollowId())
                 .orElseThrow(() -> new IllegalArgumentException("팔로우되는 사용자를 찾을 수 없습니다."));
 
         // 팔로우 관계 저장 (대기 상태로)
