@@ -21,10 +21,6 @@ public class PostController {
     // 게시물 생성 API
     @PostMapping
     public ResponseEntity<?> createPost(@RequestBody PostRequestDto requestDto, HttpSession session) {
-        Users loggedInUser = (Users) session.getAttribute("user");
-        if (loggedInUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-        }
 
         // 필수 조건: content, 이미지, 삭제 이미지 ID 중 하나는 반드시 있어야 함
         if (requestDto.isAllEmpty()) {
@@ -40,13 +36,9 @@ public class PostController {
                     .body("이미지는 최대 3장까지만 업로드할 수 있습니다.");
         }
 
-//        // 현재는 인증 기능이 없어 mock user로 대체
-//        Users mockUser = new Users();
-//        mockUser.setId(1L); // 실제 user_id로 변경 필요
-//
-//        // 게시물 생성 후 응답 반환
-//        PostResponseDto responseDto = postService.createPost(requestDto, mockUser);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        Users loggedInUser = (Users) session.getAttribute("user");
+
+        // 게시물 생성 후 응답 반환
         PostResponseDto responseDto = postService.createPost(requestDto, loggedInUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
@@ -54,19 +46,11 @@ public class PostController {
     // 게시물 단건 조회 API
     @GetMapping("/{postId}")
     public ResponseEntity<?> getPostById(@PathVariable Long postId, HttpSession session) {
-
-        Users loggedInUser = (Users) session.getAttribute("user");
-        if (loggedInUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
         try {
-            // 인증 시스템 도입 전까지 mock user 사용
-            Users mockUser = new Users();
-            mockUser.setId(1L); // 실제 인증 유저로 대체 예정
+            Users loggedInUser = (Users) session.getAttribute("user");
 
             // 게시물 ID로 조회
-            PostResponseDto responseDto = postService.getPostById(postId, mockUser);
+            PostResponseDto responseDto = postService.getPostById(postId, loggedInUser);
             return ResponseEntity.ok(responseDto);
 
         } catch (IllegalArgumentException e) {
@@ -90,12 +74,9 @@ public class PostController {
             HttpSession session
     ) {
         Users loggedInUser = (Users) session.getAttribute("user");
-        if (loggedInUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
         // 전체 게시물 조회 및 페이징 처리
-        PostPageResponseDto response = postService.getAllPosts(page, size);
+        PostPageResponseDto response = postService.getAllPosts(page, size, loggedInUser);
         return ResponseEntity.ok(response);
     }
 

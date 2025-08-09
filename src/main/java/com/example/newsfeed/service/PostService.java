@@ -84,6 +84,11 @@ public class PostService {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("404: 게시물이 존재하지 않습니다."));
 
+//        // 2-1. 게시물 본인 것만 확인 가능
+//        if (!post.getUser().getId().equals(currentUser.getId())) {
+//            throw new IllegalArgumentException("403: 접근 권한이 없습니다.");
+//        }
+
         // 3. 응답 DTO 생성 및 반환
         return new PostResponseDto(
                 post.getId(),
@@ -101,8 +106,13 @@ public class PostService {
     // 게시물 전체 조회 (페이징 처리)
     // @param page 요청한 페이지 번호 (0부터 시작)
     // @param size 한 페이지에 조회할 게시물 개수
+    // @param currentUser 현재 로그인한 유저
     // @return 페이징 처리된 게시물 리스트 DTO
-    public PostPageResponseDto getAllPosts(int page, int size) {
+    public PostPageResponseDto getAllPosts(int page, int size, Users currentUser) {
+        if (currentUser == null) {
+            throw new IllegalArgumentException("401: 로그인하지 않은 사용자입니다.");
+        }
+
         // 1. 페이징 요청 설정 (최신순 정렬)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
         // 2. 페이징 조회
