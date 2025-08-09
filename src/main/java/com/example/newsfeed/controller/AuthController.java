@@ -1,11 +1,11 @@
 package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.EmailRequestDto;
-import com.example.newsfeed.dto.UsersLoginRequestDto;
+import com.example.newsfeed.dto.AuthLoginRequestDto;
 import com.example.newsfeed.entity.Users;
-import com.example.newsfeed.dto.UsersRequestDto;
+import com.example.newsfeed.dto.AuthRequestDto;
 import com.example.newsfeed.service.EmailService;
-import com.example.newsfeed.service.UsersService;
+import com.example.newsfeed.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,19 +17,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class UsersController {
-    private final UsersService usersService;
+public class AuthController {
+    private final AuthService authService;
     private final EmailService emailService;
 
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody UsersRequestDto request) {
+    public ResponseEntity<?> signup(@RequestBody AuthRequestDto request) {
         if (!emailService.isEmailVerified(request.getEmail())) {
             return new ResponseEntity<>("이메일 인증이 필요합니다.", HttpStatus.FORBIDDEN);
         }
         try {
-            Users user = usersService.signup(request);
+            Users user = authService.signup(request);
             return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -64,9 +64,9 @@ public class UsersController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UsersLoginRequestDto request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody AuthLoginRequestDto request, HttpSession session) {
         try {
-            Users user = usersService.login(request.getEmail(), request.getPassword());
+            Users user = authService.login(request.getEmail(), request.getPassword());
 
             // 세션에 로그인 사용자 정보 저장
             session.setAttribute("user", user);

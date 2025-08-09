@@ -2,9 +2,9 @@ package com.example.newsfeed.service;
 
 
 import com.example.newsfeed.config.PasswordEncoder;
-import com.example.newsfeed.dto.UsersRequestDto;
+import com.example.newsfeed.dto.AuthRequestDto;
 import com.example.newsfeed.entity.Users;
-import com.example.newsfeed.repository.UsersRepository;
+import com.example.newsfeed.repository.AuthRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
-public class UsersService {
-    private final UsersRepository usersRepository;
+public class AuthService {
+    private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
@@ -26,11 +26,11 @@ public class UsersService {
     private static final Pattern email_Pattern = Pattern.compile("^[a-zA-Z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     @Transactional
-    public Users signup(UsersRequestDto request) {
+    public Users signup(AuthRequestDto request) {
         if(!email_Pattern.matcher(request.getEmail()).matches()) {
             throw new IllegalArgumentException("이메일 형식이 올바르지 않습니다.");
         }
-        if (usersRepository.existsByEmail(request.getEmail())) {
+        if (authRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
@@ -54,12 +54,12 @@ public class UsersService {
                 request.getProfileImage()
         );
 
-        return usersRepository.save(user);
+        return authRepository.save(user);
     }
 
     // login
     public Users login(String email, String rawPassword) {
-        Optional<Users> userEmail = usersRepository.findByEmail(email);
+        Optional<Users> userEmail = authRepository.findByEmail(email);
         if (userEmail.isEmpty()) {
             throw new IllegalArgumentException("등록되지 않은 이메일입니다.");
         }
