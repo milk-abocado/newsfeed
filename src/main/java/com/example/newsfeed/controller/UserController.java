@@ -6,8 +6,11 @@ import com.example.newsfeed.dto.UserProfileResponseDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/users")
@@ -24,29 +27,44 @@ public class UserController {
 
     // 프로필 수정
     @PatchMapping("/{userID}")
-    public String updateUserProfile(@RequestBody UserProfileUpdateRequestDto dto,
+    public ResponseEntity<String> updateUserProfile(@PathVariable Long userID,
+                                    @RequestBody UserProfileUpdateRequestDto dto,
                                     HttpSession session) {
         Users loginUser = (Users) session.getAttribute("user");
 
         if (loginUser == null) {
-            throw new IllegalStateException("로그인 정보가 없습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
+        }
+
+        if (!loginUser.getId().equals(userID)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("자기 자신만 프로필을 수정할 수 있습니다.");
         }
 
         userService.updateUserProfile(loginUser.getId(), dto);
-        return "프로필 수정이 완료 되었습니다.";
+        return ResponseEntity.ok("프로필 수정이 완료 되었습니다.");
     }
 
     // 비밀번호 변경
-    @PatchMapping("/{usersID}/change")
-    public String changePassword(@PathVariable("usersID") Long usersID,
+    @PatchMapping("/{userID}/change")
+    public ResponseEntity<String> changePassword(@PathVariable("userID") Long userID,
                                  HttpSession session,
                                  @RequestBody ChangePasswordRequestDto dto) {
         Users user = (Users) session.getAttribute("user");
         if (user == null) {
-            throw new IllegalArgumentException("로그인 상태가 아닙니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
         }
 
-        userService.changePassword(user.getId(), dto);
-        return "비밀번호가 변경되었습니다.";
+        if (!user.getId().equals(userID)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("자기 자신만 비밀번호를 변경할 수 있습니다.");
+        }
+
+        try {
+            userService.changePassword(user.getId(), dto);
+            return ResponseEntity.ok("비밀번호가 변경되었습니다.");
+        }
+        catch (ResponseStatusException ex) {
+            // 예외 메시지와 상태코드를 그대로 전달
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        }
     }
 }
