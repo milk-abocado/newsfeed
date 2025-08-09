@@ -10,8 +10,9 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Users {
 
     @Id
@@ -81,14 +82,5 @@ public class Users {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    // 프로필 수정 기능
-//    public void update(String nickname, String bio, String school, String profileImage) {
-//        this.nickname = nickname;
-//        this.bio = bio;
-//        this.school = school;
-//       this.profileImage = profileImage;
-//        this.updatedAt = LocalDateTime.now();
-//    }
-
+  
 }

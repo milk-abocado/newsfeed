@@ -8,7 +8,7 @@ import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.repository.ProfileUpdateHistoryRepository;
 import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.newsfeed.config.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ public class UserService {
     // 프로필 조회
     @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId) {
-        Users user = userRepository.findByIdAndDeletedFalse(userId)
+        Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return new UserProfileResponseDto(user);
     }
@@ -33,7 +33,7 @@ public class UserService {
     // 프로필 수정
     @Transactional
     public void updateUserProfile(Long userId, UserProfileUpdateRequestDto dto) {
-        Users user = userRepository.findByIdAndDeletedFalse(userId)
+        Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         if (!Objects.equals(user.getNickname(), dto.getNickname())) {
@@ -70,7 +70,7 @@ public class UserService {
     // 비밀번호 변경 기능
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequestDto dto) {
-        Users user = userRepository.findByIdAndDeletedFalse(userId)
+        Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 현재 비밀번호 확인

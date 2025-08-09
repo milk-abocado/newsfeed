@@ -5,9 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<Users, String> {
-    Optional<Users> findByIdAndDeletedFalse(Long id);
-
-    class ProfileUpdateHistoryRepository {
-    }
+public interface UserRepository extends JpaRepository<Users, Long> {
+    Optional<Users> findByIdAndIsDeletedFalse(Long id);
 }
