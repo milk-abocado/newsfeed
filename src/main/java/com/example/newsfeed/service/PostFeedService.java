@@ -5,7 +5,6 @@ import com.example.newsfeed.dto.PostFeedResponseDto;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.repository.FollowsRepository;
 import com.example.newsfeed.entity.Follows;
-import com.example.newsfeed.repository.FollowsRepository;
 import com.example.newsfeed.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

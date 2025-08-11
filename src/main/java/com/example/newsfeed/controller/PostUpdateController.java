@@ -2,7 +2,6 @@ package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.PostFeedItemDto;
 import com.example.newsfeed.dto.PostUpdateRequestDto;
-import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.PostUpdateService;
 import jakarta.servlet.http.HttpSession;

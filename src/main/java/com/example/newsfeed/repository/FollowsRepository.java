@@ -3,7 +3,6 @@ package com.example.newsfeed.repository;
 import com.example.newsfeed.entity.Follows;
 import com.example.newsfeed.entity.FollowsId;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;   // 추가
 import org.springframework.data.jpa.repository.Query;       // 추가
 import org.springframework.data.repository.query.Param;     // 추가
 

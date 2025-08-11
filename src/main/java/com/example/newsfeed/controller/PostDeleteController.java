@@ -1,6 +1,5 @@
 package com.example.newsfeed.controller;
 
-import com.example.newsfeed.dto.FollowResponseMessageDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.PostDeleteService;
 import jakarta.servlet.http.HttpSession;
