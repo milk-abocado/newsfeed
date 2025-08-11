@@ -26,4 +26,8 @@ public interface FollowsRepository extends JpaRepository<Follows, FollowsId> {
            or (f.followerId = :b and f.followingId = :a)
         """)
     Optional<Follows> findFriendshipBetween(@Param("a") Long a, @Param("b") Long b);
+
+    // FollowRepository 대체: 내가 팔로우 중인 사용자 id 리스트
+    @Query("select f.followingId from Follows f where f.followerId = :followerId")
+    List<Long> findFollowingIdsByFollowerId(@Param("followerId") Long followerId);
 }
