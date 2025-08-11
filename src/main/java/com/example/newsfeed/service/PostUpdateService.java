@@ -5,6 +5,7 @@ import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.PostImages;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.repository.PostImageRepository;
+import com.example.newsfeed.repository.PostLikeRepository;
 import com.example.newsfeed.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service                          // 서비스 계층 클래스임을 스프링에게 알림
 @RequiredArgsConstructor          // 생성자 자동 생성 (final 필드만)
-@Transactional                   // 전체 작업을 하나의 트랜잭션으로 처리 (실패 시 rollback)
+@Transactional                    // 전체 작업을 하나의 트랜잭션으로 처리 (실패 시 rollback)
 public class PostUpdateService {
 
     // 게시물 DB 접근용 Repository
@@ -25,6 +25,9 @@ public class PostUpdateService {
 
     // 게시물 이미지 DB 접근용 Repository
     private final PostImageRepository postImageRepository;
+
+    // 게시물 좋아요 DB 접근용 Repository
+    private final PostLikeRepository postLikeRepository;
 
     /**
      * 게시물 수정 메서드
@@ -86,7 +89,13 @@ public class PostUpdateService {
 
         // 5. 게시물 본문 수정
         post.updateContent(requestDto.getContent());
+        //return PostFeedItemDto.fromEntity(post); // ✅ DTO로 변환해 반환
 
-        return PostFeedItemDto.fromEntity(post); // ✅ DTO로 변환해 반환
+        // 좋아요 정보 계산
+        long likeCount = postLikeRepository.countByPost_Id(postId);
+        boolean likedByMe = postLikeRepository.existsByPost_IdAndUser_Id(postId, userId);
+
+        // DTO로 변환해 반환 (좋아요 정보 포함)
+        return PostFeedItemDto.fromEntity(post, likeCount, likedByMe);
     }
 }
