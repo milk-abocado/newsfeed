@@ -7,6 +7,7 @@ import com.example.newsfeed.entity.Follows;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.repository.FollowsRepository;
 import com.example.newsfeed.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -72,18 +73,15 @@ public class FollowService {
         followsRepository.delete(follow);  // 관계 종료 (친구 삭제)
     }
 
-    // 친구 삭제
-    public void deleteFriend(Long followerId, Long followingId) {
-        // 친구 관계 찾기
-        Follows follow = followsRepository.findByFollowerIdAndFollowingId(followerId, followingId)
+    // 친구 삭제하기 (양방향 중 존재하는 줄을 찾아 삭제)
+    @Transactional
+    public void deleteFriend(Long currentUserId, Long targetUserId) {
+        Follows follow = followsRepository
+                .findFriendshipBetween(currentUserId, targetUserId)
                 .orElseThrow(() -> new IllegalArgumentException("친구가 아닙니다."));
-
-        // 친구 관계가 수락된 상태에서만 삭제가 가능
-        if (!follow.getStatus()) {
+        if (!Boolean.TRUE.equals(follow.getStatus()))
             throw new IllegalArgumentException("대기 중인 친구 요청은 삭제할 수 없습니다.");
-        }
 
-        // 친구 삭제
         followsRepository.delete(follow);
     }
 
