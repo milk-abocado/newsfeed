@@ -172,7 +172,7 @@ public class UserService {
 
         //4. 개인정보 null처리
         users.setName(null); //이름 삭제
-        users.getPassword(null); //비밀번호 삭제
+        users.setPassword(null); //비밀번호 삭제
         users.setBio(null); //소개글 삭제
         users.setNickname(null); //닉네임 삭제
         users.setProfileImage(null); //프로필 사진 삭제
