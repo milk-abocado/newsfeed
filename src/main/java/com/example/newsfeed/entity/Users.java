@@ -8,11 +8,12 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "users") //DB 테이블명
+@Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Users {
 
     @Id
@@ -27,8 +28,7 @@ public class Users {
 
     @Column(length = 100)
     private String name;
-
-
+  
     @Column(length = 100)
     private String nickname;
 
@@ -74,16 +74,18 @@ public class Users {
         this.isDeleted = false;
     }
 
-    // 프로필 수정 기능
-//    public void update(String nickname, String bio, String school, String profileImage) {
-//        this.nickname = nickname;
-//        this.bio = bio;
-//        this.school = school;
-//       this.profileImage = profileImage;
-//        this.updatedAt = LocalDateTime.now();
-//    }
-
     public void softDelete() {
     this.isDeleted = true;
     }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+  
 }
