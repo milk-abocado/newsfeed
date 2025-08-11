@@ -30,7 +30,7 @@ public class AuthController {
         }
         try {
             Users user = authService.signup(request);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.CREATED); // 상태 코드 수정
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
