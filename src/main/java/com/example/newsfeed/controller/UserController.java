@@ -1,5 +1,6 @@
 package com.example.newsfeed.controller;
 
+import com.example.newsfeed.dto.AuthLoginRequestDto;
 import com.example.newsfeed.dto.ChangePasswordRequestDto;
 import com.example.newsfeed.dto.UserProfileUpdateRequestDto;
 import com.example.newsfeed.dto.UserProfileResponseDto;
@@ -69,8 +70,8 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    public String deleteUser(@RequestParam String email, @RequestParam String password) {
-        userService.deleteAccount(email, password);
+    public String deleteUser(@RequestBody AuthLoginRequestDto request) {
+        userService.deleteAccount(request.getEmail(), request.getPassword());
         return "회원 탈퇴가 완료되었습니다.";
     }
 }

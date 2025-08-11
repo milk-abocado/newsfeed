@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +78,27 @@ public class UserService {
                     .build());
             user.setProfileImage(dto.getProfileImage());
         }
+
+        if (!Objects.equals(user.getHometown(), dto.getHometown())) {
+            profileUpdateHistoryRepository.save(ProfileUpdateHistory.builder()
+                    .user(user)
+                    .fieldName("hometown")
+                    .oldValue(user.getHometown())
+                    .newValue(dto.getHometown())
+                    .build());
+            user.setHometown(dto.getHometown());
+        }
+
+        if (!Objects.equals(user.getSchool(), dto.getSchool())) {
+            profileUpdateHistoryRepository.save(ProfileUpdateHistory.builder()
+                    .user(user)
+                    .fieldName("school")
+                    .oldValue(user.getSchool())
+                    .newValue(dto.getSchool())
+                    .build());
+            user.setSchool(dto.getSchool());
+        }
+
     }
 
     // 비밀번호 변경 기능
@@ -143,17 +166,18 @@ public class UserService {
         return hasLetter && hasDigit && hasSpec;
     }
 
+    @Transactional
     public void deleteAccount(String email, String password) {
 
         //1. 비밀번호 미입력(400)
-        //1-1) 비밀번호 미입력
-        if (password == null || password.trim().isEmpty()) {
-            throw new PasswordRequiredException("비밀번호가 필요합니다.");
-        }
-
-        //1-2) 이메일로 사용자 조회(Users 존재하는지 여부)
+        //1-1) 이메일로 사용자 조회(Users 존재하는지 여부)
         Users users = authRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+        //1-2) 비밀번호 미입력
+                if (password == null || password.trim().isEmpty()) {
+            throw new PasswordRequiredException("비밀번호가 필요합니다.");
+        }
 
         //1-3) 이미 탈퇴한 경우
         if (users.getIsDeleted()) {
@@ -168,6 +192,21 @@ public class UserService {
         //3. 탈퇴처리(soft delete)
         users.softDelete();
         authRepository.save(users);
+
+
+        //4. 개인정보 null처리
+        String randomPassword = UUID.randomUUID().toString();
+
+        users.setName(null); //이름 삭제
+        users.setPassword(passwordEncoder.encode(randomPassword)); //비밀번호 삭제
+        users.setBio(null); //소개글 삭제
+        users.setNickname(null); //닉네임 삭제
+        users.setProfileImage(null); //프로필 사진 삭제
+        users.setHometown(null); //지역 삭제
+        users.setSchool(null); //학교 삭제
+        users.setSecurityQuestion(null);
+        users.setSecurityAnswer(null);
+        users.setUpdatedAt(LocalDateTime.now());
     }
 }
 
