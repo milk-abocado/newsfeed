@@ -20,12 +20,10 @@ public class CommentController {
     private final CommentService commentService;
 
     // 댓글 작성: POST /posts/{postId}/comments
-    /**
-     * @param postId   댓글을 달 게시물 ID
-     * @param session  현재 요청의 세션 (로그인 사용자 확인)
-     * @param req      댓글 내용 DTO (content 필수)
-     * @return 201 Created + 생성된 댓글 DTO
-     */
+    // @param postId   댓글을 달 게시물 ID
+    // @param session  현재 요청의 세션 (로그인 사용자 확인)
+    // @param req      댓글 내용 DTO (content 필수)
+    // @return 201 Created + 생성된 댓글 DTO
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<?> create(@PathVariable Long postId,
                                     HttpSession session,
@@ -52,35 +50,34 @@ public class CommentController {
     }
 
     // 댓글 조회(페이지네이션): GET /posts/{postId}/comments?page=0&size=10
-    /**
-     * @param postId 게시물 ID
-     * @param page   페이지 번호(0부터 시작)
-     * @param size   페이지 크기(기본 10)
-     * @return 200 OK + 댓글 페이지 응답 DTO
-     */
+    // @param postId 게시물 ID
+    // @param page   페이지 번호(0부터 시작)
+    // @param size   페이지 크기(기본 10)
+    // @return 200 OK + 댓글 페이지 응답 DTO
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<?> list(@PathVariable Long postId,
                                   @RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "10") int size) {
+                                  @RequestParam(defaultValue = "10") int size,
+                                  HttpSession session) {
         try {
-            // 최신순(createdAt DESC)으로 페이징 조회
-            CommentsPageResponseDto res = commentService.getList(postId, page, size);
+            Users loginUser = (Users) session.getAttribute("user");
+            Long currentUserId = (loginUser == null) ? null : loginUser.getId();
+
+            CommentsPageResponseDto res = commentService.getList(postId, page, size, currentUserId);
             return ResponseEntity.ok(res);
         } catch (ResponseStatusException ex) {
-            // 예: 게시물 미존재 등
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
+
     // 댓글 수정: PATCH /comments/{commentId}
-    /**
-     * @param commentId 수정할 댓글 ID
-     * @param session   로그인 사용자 세션
-     * @param req       수정할 내용 DTO (content만 허용)
-     * @return 200 OK + 수정된 댓글 DTO
-     */
+    // @param commentId 수정할 댓글 ID
+    // @param session   로그인 사용자 세션
+    // @param req       수정할 내용 DTO (content만 허용)
+    // @return 200 OK + 수정된 댓글 DTO
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<?> update(@PathVariable Long commentId,
                                     HttpSession session,
@@ -102,11 +99,9 @@ public class CommentController {
     }
 
     // 댓글 삭제: DELETE /comments/{commentId}
-    /**
-     * @param commentId 삭제할 댓글 ID
-     * @param session   로그인 사용자 세션
-     * @return 200 OK + 성공 메시지
-     */
+    // @param commentId 삭제할 댓글 ID
+    // @param session   로그인 사용자 세션
+    // @return 200 OK + 성공 메시지
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<?> delete(@PathVariable Long commentId,
                                     HttpSession session) {

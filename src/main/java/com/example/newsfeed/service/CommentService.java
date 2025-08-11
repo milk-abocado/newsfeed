@@ -6,6 +6,7 @@ import com.example.newsfeed.dto.CommentsResponseDto;
 import com.example.newsfeed.entity.Comments;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.repository.CommentLikeRepository;
 import com.example.newsfeed.repository.CommentRepository;
 import com.example.newsfeed.repository.PostRepository;
 import com.example.newsfeed.repository.UserRepository;
@@ -26,15 +27,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
-
-    /**
-     * 댓글 작성
-     * @param postId        댓글이 달릴 게시물 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
-     * @param req           댓글 작성 요청 DTO (내용 포함)
-     * @return 작성된 댓글 정보 DTO
-     */
+    // 댓글 작성
+    // @param postId        댓글이 달릴 게시물 ID
+    // @param currentUserId 현재 로그인한 사용자 ID
+    // @param req           댓글 작성 요청 DTO (내용 포함)
+    // @return 작성된 댓글 정보 DTO
     public CommentsResponseDto create(Long postId, Long currentUserId, CommentsRequestDto req) {
         // 내용이 null이거나 공백만 있을 경우 예외 처리
         String content = (req.getContent() == null) ? "" : req.getContent().trim();
@@ -58,18 +57,16 @@ public class CommentService {
                 .build());
 
         // 저장된 댓글 DTO로 변환 후 반환
-        return toDto(saved);
+        return toDto(saved, currentUserId);
     }
 
-    /**
-     * 댓글 목록 조회 (페이지네이션)
-     * @param postId 게시물 ID
-     * @param page   페이지 번호
-     * @param size   페이지 크기
-     * @return 댓글 페이지 응답 DTO
-     */
+    // 댓글 목록 조회 (페이지네이션)
+    // @param postId 게시물 ID
+    // @param page   페이지 번호
+    // @param size   페이지 크기
+    // @return 댓글 페이지 응답 DTO
     @Transactional(readOnly = true)
-    public CommentsPageResponseDto getList(Long postId, int page, int size) {
+    public CommentsPageResponseDto getList(Long postId, int page, int size, Long currentUserId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // 해당 게시물의 댓글을 최신순으로 조회
@@ -77,7 +74,9 @@ public class CommentService {
 
         // Page 데이터를 DTO로 변환
         CommentsPageResponseDto res = new CommentsPageResponseDto();
-        res.setContentList(pageData.getContent().stream().map(this::toDto).collect(Collectors.toList()));
+        res.setContentList(pageData.getContent().stream()
+                .map(c -> toDto(c, currentUserId))
+                .collect(Collectors.toList()));
         res.setPage(pageData.getNumber());
         res.setSize(pageData.getSize());
         res.setTotalElements(pageData.getTotalElements());
@@ -86,13 +85,11 @@ public class CommentService {
         return res;
     }
 
-    /**
-     * 댓글 수정 (댓글 작성자만 가능)
-     * @param commentId     수정할 댓글 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
-     * @param req           수정할 내용 DTO
-     * @return 수정된 댓글 정보 DTO
-     */
+    // 댓글 수정 (댓글 작성자만 가능)
+    // @param commentId     수정할 댓글 ID
+    // @param currentUserId 현재 로그인한 사용자 ID
+    // @param req           수정할 내용 DTO
+    // @return 수정된 댓글 정보 DTO
     public CommentsResponseDto update(Long commentId, Long currentUserId, CommentsRequestDto req) {
         // 내용 검증
         String content = (req.getContent() == null) ? "" : req.getContent().trim();
@@ -112,14 +109,12 @@ public class CommentService {
 
         // 내용 수정 (영속성 컨텍스트 적용)
         c.setContent(content); // 영속 상태 -> 커밋 시 업데이트
-        return toDto(c);
+        return toDto(c, currentUserId);
     }
 
-    /**
-     * 댓글 삭제 (댓글 작성자 또는 게시글 작성자 가능)
-     * @param commentId     삭제할 댓글 ID
-     * @param currentUserId 현재 로그인한 사용자 ID
-     */
+    // 댓글 삭제 (댓글 작성자 또는 게시글 작성자 가능)
+    // @param commentId     삭제할 댓글 ID
+    // @param currentUserId 현재 로그인한 사용자 ID
     public void delete(Long commentId, Long currentUserId) {
         // 댓글 존재 여부 확인
         Comments c = commentRepository.findById(commentId)
@@ -138,10 +133,12 @@ public class CommentService {
         commentRepository.delete(c);
     }
 
-    /**
-     * 엔티티를 DTO로 변환
-     */
-    private CommentsResponseDto toDto(Comments c) {
+    // 엔티티를 DTO로 변환
+    private CommentsResponseDto toDto(Comments c, Long currentUserId) {
+        long likeCount = commentLikeRepository.countByComment_Id(c.getId());
+        boolean likedByMe = (currentUserId != null) &&
+                commentLikeRepository.existsByComment_IdAndUser_Id(c.getId(), currentUserId);
+
         return CommentsResponseDto.builder()
                 .id(c.getId())
                 .postId(c.getPost().getId())
@@ -150,6 +147,8 @@ public class CommentService {
                 .content(c.getContent())
                 .createdAt(c.getCreatedAt())
                 .updatedAt(c.getUpdatedAt())
+                .likeCount(likeCount)
+                .likedByCurrentUser(likedByMe)
                 .build();
     }
 }
