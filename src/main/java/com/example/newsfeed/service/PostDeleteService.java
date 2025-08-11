@@ -28,7 +28,7 @@ public class PostDeleteService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 게시물만 삭제할 수 있습니다.");
         }
 
-        // 실제 삭제하지 않고, isDeleted 플래그만 true로 변경 (소프트 삭제)
-        post.setIsDeleted(true);
+        // hard delete -> DB에서 제거
+        postRepository.delete(post);
     }
 }

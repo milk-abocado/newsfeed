@@ -19,7 +19,7 @@ public class PostDeleteController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(
             @PathVariable Long postId,
-            HttpSession session // 임시로 로그인 유저 ID를 받아옴 -> 추후 로그인 기능과 merge시 변경 예정
+            HttpSession session
     ) {
 
         Users loginUser = (Users) session.getAttribute("user");
