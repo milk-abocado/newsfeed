@@ -2,7 +2,9 @@ package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.Posts;
+import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.PostUpdateService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +19,16 @@ public class PostUpdateController {
     @PatchMapping("/{postId}")
     public ResponseEntity<?> updatePost(
             @PathVariable Long postId,
-            @RequestBody PostUpdateRequestDto requestDto
+            @RequestBody PostUpdateRequestDto requestDto,
+            HttpSession session
     ) {
         // 현재 로그인한 사용자 ID 추출 (임시 코드)
-        Long userId = 1L; // 추후 로그인 정보로 대체 예정
+        Users loginUser = (Users) session.getAttribute("user");
+        // 로그인한 상태인지 확인
+        if (loginUser == null) {
+            return ResponseEntity.unprocessableEntity().body("로그인이 필요합니다.");
+        }
+        Long userId = loginUser.getId();
 
         Posts updatedPost = postUpdateService.updatePost(postId, requestDto, userId);
         return ResponseEntity.ok().body(updatedPost);
