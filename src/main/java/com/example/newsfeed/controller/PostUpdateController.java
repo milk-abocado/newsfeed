@@ -1,5 +1,6 @@
 package com.example.newsfeed.controller;
 
+import com.example.newsfeed.dto.PostFeedItemDto;
 import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
@@ -22,7 +23,7 @@ public class PostUpdateController {
             @RequestBody PostUpdateRequestDto requestDto,
             HttpSession session
     ) {
-        // 현재 로그인한 사용자 ID 추출 (임시 코드)
+
         Users loginUser = (Users) session.getAttribute("user");
         // 로그인한 상태인지 확인
         if (loginUser == null) {
@@ -30,7 +31,7 @@ public class PostUpdateController {
         }
         Long userId = loginUser.getId();
 
-        Posts updatedPost = postUpdateService.updatePost(postId, requestDto, userId);
-        return ResponseEntity.ok().body(updatedPost);
+        PostFeedItemDto dto = postUpdateService.updatePost(postId, requestDto, userId);
+        return ResponseEntity.ok(dto);
     }
 }
