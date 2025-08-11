@@ -22,7 +22,7 @@ public class PostUpdateController {
             @RequestBody PostUpdateRequestDto requestDto,
             HttpSession session
     ) {
-        // 현재 로그인한 사용자 ID 추출 (임시 코드)
+
         Users loginUser = (Users) session.getAttribute("user");
         // 로그인한 상태인지 확인
         if (loginUser == null) {
