@@ -1,5 +1,6 @@
 package com.example.newsfeed.controller;
 
+import com.example.newsfeed.dto.PostFeedItemDto;
 import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
@@ -30,7 +31,7 @@ public class PostUpdateController {
         }
         Long userId = loginUser.getId();
 
-        Posts updatedPost = postUpdateService.updatePost(postId, requestDto, userId);
-        return ResponseEntity.ok().body(updatedPost);
+        PostFeedItemDto dto = postUpdateService.updatePost(postId, requestDto, userId);
+        return ResponseEntity.ok(dto);
     }
 }
