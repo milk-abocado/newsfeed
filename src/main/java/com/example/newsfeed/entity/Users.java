@@ -2,6 +2,7 @@ package com.example.newsfeed.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.engine.spi.Status;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +28,7 @@ public class Users {
 
     @Column(length = 100)
     private String name;
-
+  
     @Column(length = 100)
     private String nickname;
 
@@ -71,6 +72,10 @@ public class Users {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.isDeleted = false;
+    }
+
+    public void softDelete() {
+    this.isDeleted = true;
     }
 
     @PrePersist
