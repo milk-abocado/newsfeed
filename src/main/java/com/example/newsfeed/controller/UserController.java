@@ -69,7 +69,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete")
-    public String deleteUser(@RequestParam String email, @RequestParam String password) {
+    public String deleteUser(@RequestBody String email, @RequestBody String password) {
         userService.deleteAccount(email, password);
         return "회원 탈퇴가 완료되었습니다.";
     }
