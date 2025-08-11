@@ -3,10 +3,10 @@ package com.example.newsfeed.repository;
 import com.example.newsfeed.entity.Posts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,17 +18,45 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
     // 삭제되지 않은 게시물만 전체 조회
     List<Posts> findAllByIsDeletedFalse();
 
+    // 팔로잉 + 본인 게시물 범위 조회 (정렬은 Pageable로 지정: 예) updatedAt DESC)
+    // 작성일(createdAt) 기간 필터: [start, end)
+    @Query("""
+           SELECT p FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           """)
+    Page<Posts> findFeedByUserIdsAndDateRange(
+            @Param("userIds") List<Long> userIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
 
-    /**
-     * 뉴스피드 게시물 조회용 쿼리
-     * - 삭제되지 않은 게시물
-     * - 본인 + 팔로우한 사용자 한해서 조회
-     * - 최신순 정렬 (내림차순)
-     * - 페이징 처리
-     */
-
-    @Query("SELECT p FROM Posts p " +
-            "WHERE p.isDeleted = false AND p.user.id IN :userIds " +
-            "ORDER BY p.createdAt DESC") // 내림차순 정렬
-    Page<Posts> findFeedByUserIds(@Param("userIds") List<Long> userIds, Pageable pageable);
+    // 좋아요 많은 순 (작성일 범위 + 좋아요 수 DESC + 보조정렬 updatedAt DESC)
+    @Query(value = """
+           SELECT p
+           FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           ORDER BY (SELECT COUNT(pl) FROM PostLike pl WHERE pl.post = p) DESC,
+                    p.updatedAt DESC
+           """,
+            countQuery = """
+           SELECT COUNT(p)
+           FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           """)
+    Page<Posts> findFeedByUserIdsAndDateRangeOrderByLikeCountDesc(
+            @Param("userIds") List<Long> userIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
 }

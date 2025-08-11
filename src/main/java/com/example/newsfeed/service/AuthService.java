@@ -63,7 +63,13 @@ public class AuthService {
         if (userEmail.isEmpty()) {
             throw new IllegalArgumentException("등록되지 않은 이메일입니다.");
         }
+
         Users user = userEmail.get();
+
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            throw new IllegalArgumentException("탈퇴한 계정입니다.");
+        }
+
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }

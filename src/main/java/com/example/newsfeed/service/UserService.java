@@ -5,6 +5,10 @@ import com.example.newsfeed.dto.UserProfileUpdateRequestDto;
 import com.example.newsfeed.dto.UserProfileResponseDto;
 import com.example.newsfeed.entity.ProfileUpdateHistory;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.exception.AlreadyDeletedException;
+import com.example.newsfeed.exception.InvalidCredentialsException;
+import com.example.newsfeed.exception.PasswordRequiredException;
+import com.example.newsfeed.repository.AuthRepository;
 import com.example.newsfeed.repository.ProfileUpdateHistoryRepository;
 import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthRepository authRepository;
     private final ProfileUpdateHistoryRepository profileUpdateHistoryRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -71,6 +78,27 @@ public class UserService {
                     .build());
             user.setProfileImage(dto.getProfileImage());
         }
+
+        if (!Objects.equals(user.getHometown(), dto.getHometown())) {
+            profileUpdateHistoryRepository.save(ProfileUpdateHistory.builder()
+                    .user(user)
+                    .fieldName("hometown")
+                    .oldValue(user.getHometown())
+                    .newValue(dto.getHometown())
+                    .build());
+            user.setHometown(dto.getHometown());
+        }
+
+        if (!Objects.equals(user.getSchool(), dto.getSchool())) {
+            profileUpdateHistoryRepository.save(ProfileUpdateHistory.builder()
+                    .user(user)
+                    .fieldName("school")
+                    .oldValue(user.getSchool())
+                    .newValue(dto.getSchool())
+                    .build());
+            user.setSchool(dto.getSchool());
+        }
+
     }
 
     // 비밀번호 변경 기능
@@ -136,6 +164,49 @@ public class UserService {
         boolean hasDigit  = pw.chars().anyMatch(Character::isDigit);
         boolean hasSpec   = pw.chars().anyMatch(c -> !Character.isLetterOrDigit(c));
         return hasLetter && hasDigit && hasSpec;
+    }
+
+    @Transactional
+    public void deleteAccount(String email, String password) {
+
+        //1. 비밀번호 미입력(400)
+        //1-1) 이메일로 사용자 조회(Users 존재하는지 여부)
+        Users users = authRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+        //1-2) 비밀번호 미입력
+                if (password == null || password.trim().isEmpty()) {
+            throw new PasswordRequiredException("비밀번호가 필요합니다.");
+        }
+
+        //1-3) 이미 탈퇴한 경우
+        if (users.getIsDeleted()) {
+            throw new AlreadyDeletedException("이미 탈퇴한 사용자입니다.");
+        }
+
+        //2. 비밀번호 불일치(401)
+        if (!passwordEncoder.matches(password, users.getPassword())) {
+            throw new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+
+        //3. 탈퇴처리(soft delete)
+        users.softDelete();
+        authRepository.save(users);
+
+
+        //4. 개인정보 null처리
+        String randomPassword = UUID.randomUUID().toString();
+
+        users.setName(null); //이름 삭제
+        users.setPassword(passwordEncoder.encode(randomPassword)); //비밀번호 삭제
+        users.setBio(null); //소개글 삭제
+        users.setNickname(null); //닉네임 삭제
+        users.setProfileImage(null); //프로필 사진 삭제
+        users.setHometown(null); //지역 삭제
+        users.setSchool(null); //학교 삭제
+        users.setSecurityQuestion(null);
+        users.setSecurityAnswer(null);
+        users.setUpdatedAt(LocalDateTime.now());
     }
 }
 

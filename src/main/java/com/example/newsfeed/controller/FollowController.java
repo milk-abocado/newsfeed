@@ -155,35 +155,26 @@ public class FollowController {
                                                HttpSession session) {
 
         Users loginUser = (Users) session.getAttribute("user");
-        // 로그인한 상태인지 확인
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new FollowResponseMessageDto("로그인이 필요합니다."));
         }
-
         Long loggedInUserId = loginUser.getId();
-
-        // 경로와 로그인한 사람이 같은지 확인
         if (!userId.equals(loggedInUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new FollowResponseMessageDto("자기 ID로만 친구를 삭제할 수 있습니다."));
         }
 
         try {
-            Long followerId = followRequestDto.getFollowId();
-            // 친구 삭제 서비스 호출
-            followService.deleteFriend(followerId, userId);
+            Long targetUserId = followRequestDto.getFollowId(); // 상대 사용자 ID
+            // 서비스 시그니처: (현재 유저, 상대 유저)
+            followService.deleteFriend(userId, targetUserId);
 
-            // 친구 삭제가 완료되면 200 OK 상태 반환
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new FollowResponseMessageDto("친구 삭제가 완료되었습니다."));
-
+            return ResponseEntity.ok(new FollowResponseMessageDto("친구 삭제가 완료되었습니다."));
         } catch (IllegalArgumentException e) {
-            // 친구가 아닌 경우 403 Forbidden 상태 반환
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("친구가 아닙니다."));
+                    .body(new FollowResponseMessageDto(e.getMessage()));
         } catch (Exception e) {
-            // 서버 오류 발생 시 500 Internal Server Error 상태 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new FollowResponseMessageDto("서버 오류가 발생했습니다."));
         }
