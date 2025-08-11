@@ -1,5 +1,6 @@
 package com.example.newsfeed.service;
 
+import com.example.newsfeed.dto.PostFeedItemDto;
 import com.example.newsfeed.dto.PostUpdateRequestDto;
 import com.example.newsfeed.entity.PostImages;
 import com.example.newsfeed.entity.Posts;
@@ -7,7 +8,9 @@ import com.example.newsfeed.repository.PostImageRepository;
 import com.example.newsfeed.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,15 +33,16 @@ public class PostUpdateService {
      * @param userId 현재 로그인한 사용자 ID
      * @return 수정된 게시물 객체
      */
-    public Posts updatePost(Long postId, PostUpdateRequestDto requestDto, Long userId) {
+    @Transactional
+    public PostFeedItemDto  updatePost(Long postId, PostUpdateRequestDto requestDto, Long userId) {
 
         // 1. 게시물 조회 (없으면 404 예외)
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물이 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 게시물이 존재하지 않습니다."));
 
         // 2. 권한 체크: 작성자와 현재 로그인 유저가 같은지 확인
         if (!post.getUser().getId().equals(userId)) {
-            throw new IllegalStateException("게시물을 수정할 권한이 없습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시물을 수정할 권한이 없습니다.");
         }
 
         // 3. 이미지 삭제 처리
@@ -83,7 +87,6 @@ public class PostUpdateService {
         // 5. 게시물 본문 수정
         post.updateContent(requestDto.getContent());
 
-        // 6. 게시물 + 이미지 최종 저장 (Cascade -> 이미지도 같이 저장됨)
-        return postRepository.save(post);
+        return PostFeedItemDto.fromEntity(post); // ✅ DTO로 변환해 반환
     }
 }
