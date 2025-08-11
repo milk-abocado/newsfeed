@@ -26,8 +26,8 @@ public class UserController {
     }
 
     // 프로필 수정
-    @PatchMapping("/{userID}")
-    public ResponseEntity<String> updateUserProfile(@PathVariable Long userID,
+    @PatchMapping("/{userId}")
+    public ResponseEntity<String> updateUserProfile(@PathVariable Long userId,
                                     @RequestBody UserProfileUpdateRequestDto dto,
                                     HttpSession session) {
         Users loginUser = (Users) session.getAttribute("user");
@@ -36,7 +36,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
         }
 
-        if (!loginUser.getId().equals(userID)) {
+        if (!loginUser.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("자기 자신만 프로필을 수정할 수 있습니다.");
         }
 
@@ -45,8 +45,8 @@ public class UserController {
     }
 
     // 비밀번호 변경
-    @PatchMapping("/{userID}/change")
-    public ResponseEntity<String> changePassword(@PathVariable("userID") Long userID,
+    @PatchMapping("/{userId}/change")
+    public ResponseEntity<String> changePassword(@PathVariable("userId") Long userId,
                                  HttpSession session,
                                  @RequestBody ChangePasswordRequestDto dto) {
         Users user = (Users) session.getAttribute("user");
@@ -54,7 +54,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
         }
 
-        if (!user.getId().equals(userID)) {
+        if (!user.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("자기 자신만 비밀번호를 변경할 수 있습니다.");
         }
 
@@ -66,5 +66,11 @@ public class UserController {
             // 예외 메시지와 상태코드를 그대로 전달
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
         }
+    }
+
+    @DeleteMapping("/delete")
+    public String deleteUser(@RequestParam String email, @RequestParam String password) {
+        userService.deleteAccount(email, password);
+        return "회원 탈퇴가 완료되었습니다.";
     }
 }

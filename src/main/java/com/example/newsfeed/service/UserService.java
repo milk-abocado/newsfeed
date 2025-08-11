@@ -5,6 +5,10 @@ import com.example.newsfeed.dto.UserProfileUpdateRequestDto;
 import com.example.newsfeed.dto.UserProfileResponseDto;
 import com.example.newsfeed.entity.ProfileUpdateHistory;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.exception.AlreadyDeletedException;
+import com.example.newsfeed.exception.InvalidCredentialsException;
+import com.example.newsfeed.exception.PasswordRequiredException;
+import com.example.newsfeed.repository.AuthRepository;
 import com.example.newsfeed.repository.ProfileUpdateHistoryRepository;
 import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,7 @@ import java.util.Objects;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthRepository authRepository;
     private final ProfileUpdateHistoryRepository profileUpdateHistoryRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -136,6 +141,33 @@ public class UserService {
         boolean hasDigit  = pw.chars().anyMatch(Character::isDigit);
         boolean hasSpec   = pw.chars().anyMatch(c -> !Character.isLetterOrDigit(c));
         return hasLetter && hasDigit && hasSpec;
+    }
+
+    public void deleteAccount(String email, String password) {
+
+        //1. 비밀번호 미입력(400)
+        //1-1) 비밀번호 미입력
+        if (password == null || password.trim().isEmpty()) {
+            throw new PasswordRequiredException("비밀번호가 필요합니다.");
+        }
+
+        //1-2) 이메일로 사용자 조회(Users 존재하는지 여부)
+        Users users = authRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+        //1-3) 이미 탈퇴한 경우
+        if (users.getIsDeleted()) {
+            throw new AlreadyDeletedException("이미 탈퇴한 사용자입니다.");
+        }
+
+        //2. 비밀번호 불일치(401)
+        if (!passwordEncoder.matches(password, users.getPassword())) {
+            throw new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+
+        //3. 탈퇴처리(soft delete)
+        users.softDelete();
+        authRepository.save(users);
     }
 }
 
