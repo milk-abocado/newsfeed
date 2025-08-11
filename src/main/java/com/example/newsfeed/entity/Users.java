@@ -23,25 +23,25 @@ public class Users {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     private String password;
 
-    @Column(length = 100)
+    @Column(nullable = true, length = 100)
     private String name;
   
-    @Column(length = 100)
+    @Column(nullable = true, length = 100)
     private String nickname;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String bio;
 
-    @Column(name = "profile_image", columnDefinition = "TEXT")
+    @Column(nullable = true, name = "profile_image", columnDefinition = "TEXT")
     private String profileImage;
 
-    @Column(length = 100)
+    @Column(nullable = true, length = 100)
     private String hometown;
 
-    @Column(length = 100)
+    @Column(nullable = true, length = 100)
     private String school;
 
     @Column(name = "security_question", length = 255)

@@ -21,6 +21,18 @@ CREATE TABLE users
 );
 
 
+AFTER TABLE users MODIFY
+(
+      password VARCHAR(255) NULL,
+      name VARCHAR(100) NULL,
+      nickname VARCHAR(100) NULL,
+      bio TEXT NULL,
+      profile_image TEXT NULL,
+      hometown VARCHAR(100) NULL,
+      school VARCHAR(100) NULL
+
+);
+
 CREATE TABLE email_verifications
 (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
