@@ -27,7 +27,7 @@ public class PostFeedItemDto {
                 post.getUser().getId(),
                 post.getUser().getNickname(),
                 post.getContent(),
-                post.getImages().stream()
+                post.getPostImageList().stream()
                         .map(img -> img.getImageUrl())
                         .toList(),
                 post.getCreatedAt()

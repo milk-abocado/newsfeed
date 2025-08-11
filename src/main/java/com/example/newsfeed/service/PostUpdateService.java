@@ -61,7 +61,7 @@ public class PostUpdateService {
 
         // 4. 이미지 추가 처리
         if (requestDto.getAddImageUrl() != null) {
-            int currentImageCount = post.getImages().size();              // 현재 게시물 이미지 수
+            int currentImageCount = post.getPostImageList().size();              // 현재 게시물 이미지 수
             int newImageCount = requestDto.getAddImageUrl().size();      // 새로 추가할 이미지 수
 
             // 총합이 3개 초과되면 예외 발생
