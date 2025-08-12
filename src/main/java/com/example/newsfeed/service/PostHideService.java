@@ -1,11 +1,9 @@
 package com.example.newsfeed.service;
 
 import com.example.newsfeed.dto.PostHideResponseDto;   // 없으면 다음 단계에서 만들자
-import com.example.newsfeed.entity.Follows;
 import com.example.newsfeed.entity.PostHide;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
-import com.example.newsfeed.repository.FollowsRepository;
 import com.example.newsfeed.repository.PostRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -25,7 +23,6 @@ import java.util.List;
 public class PostHideService {
 
     private final PostRepository postRepository;
-    private final FollowsRepository followsRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -51,16 +48,6 @@ public class PostHideService {
         // 2) 내 글 차단 불가 -> 404
         if (authorId.equals(myId)) {
             throw selfHideNotAllowed();
-        }
-
-        // 3) 팔로우 '수락 상태'인지 확인(아니면 404)
-        boolean followingAccepted = followsRepository
-                .findByFollowerIdAndFollowingId(myId, authorId)
-                .map(Follows::getStatus)    // Boolean (true=수락) 라고 가정
-                .orElse(Boolean.FALSE);
-
-        if (!followingAccepted) {
-            throw followNotAccepted();
         }
 
         // 4) 이미 숨김이면 멱등 응답(기존 createdAt 사용)
@@ -107,7 +94,4 @@ public class PostHideService {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "본인 게시물은 차단할 수 없습니다.");
     }
 
-    private ResponseStatusException followNotAccepted() {
-        return new ResponseStatusException(HttpStatus.NOT_FOUND, "팔로우한 사용자의 게시물이 아닙니다.");
-    }
 }

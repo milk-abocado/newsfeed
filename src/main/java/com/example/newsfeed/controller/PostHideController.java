@@ -1,12 +1,12 @@
 package com.example.newsfeed.controller;
 
-import com.example.newsfeed.dto.PostHideResponseDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.PostHideService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 게시물 차단 API
@@ -23,13 +23,12 @@ public class PostHideController {
 
     @PostMapping("/{postId}/hide")
     public ResponseEntity<?> hide(@PathVariable Long postId, HttpSession session) {
-        // 로그인 체크
         Users loginUser = (Users) session.getAttribute("user");
-        if (loginUser == null) {
-            return ResponseEntity.unprocessableEntity().body("로그인이 필요합니다."); //422
+        if (loginUser == null) return ResponseEntity.unprocessableEntity().body("로그인이 필요합니다.");
+        try {
+            return ResponseEntity.ok(postHideService.hidePost(loginUser.getId(), postId));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason()); // ← 메시지 보장
         }
-
-        PostHideResponseDto res = postHideService.hidePost(loginUser.getId(), postId);
-        return ResponseEntity.ok(res);
     }
 }
