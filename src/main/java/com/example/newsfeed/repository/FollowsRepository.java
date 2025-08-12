@@ -20,6 +20,9 @@ public interface FollowsRepository extends JpaRepository<Follows, FollowsId> {
     // 내가 팔로우 중(= follower) + 상태 필터(accepted/pending)
     List<Follows> findByFollowerIdAndStatus(Long followerId, Boolean status);
 
+    // 팔로우 중(=following) + 수락 상태 목록
+    List<Follows> findByFollowingIdAndStatus(Long followingId, Boolean status);
+
     // 두 사용자 사이에 어느 방향이든 관계가 있으면 가져오기(대기/수락 구분은 엔티티 status로 확인)
     @Query("""
         select f
