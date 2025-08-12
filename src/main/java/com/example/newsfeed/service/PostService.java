@@ -6,6 +6,7 @@ import com.example.newsfeed.dto.PostResponseDto;
 import com.example.newsfeed.entity.PostImages;
 import com.example.newsfeed.entity.Posts;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.repository.PostLikeRepository;
 import com.example.newsfeed.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,15 +22,15 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
 
     // 게시물 생성
     // @param requestDto 요청 데이터 (content, image URL 등)
     // @param user 게시물 작성자 (현재는 mock 유저)
     // @return 생성된 게시물의 응답 DTO
     public PostResponseDto createPost(PostRequestDto requestDto, Users user) {
-        // 테스트용 mock 유저에 nickname이 없는 경우 임시 설정
         if (user.getNickname() == null) {
-            user.setNickname("user"); // 임시 설정
+            user.setNickname("user");
         }
 
         // 1. 게시물 엔티티 생성
@@ -43,9 +44,9 @@ public class PostService {
             requestDto.getImageUrlList().forEach(url -> {
                 PostImages image = PostImages.builder()
                         .imageUrl(url)
-                        .post(post)   // 연관 설정
+                        .post(post)
                         .build();
-                post.addImage(image); // 양방향 연관관계 설정
+                post.addImage(image);
             });
         }
 
@@ -57,17 +58,20 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("게시물 저장 후 조회 실패"));
 
         // 5. 응답 DTO 생성 및 반환
-        return new PostResponseDto(
-                fullPost.getId(),
-                fullPost.getUser().getId(),
-                fullPost.getUser().getNickname(),
-                fullPost.getContent(),
-                fullPost.getPostImageList().stream()
+        // 생성 직후 likeCount=0, likedByCurrentUser=false
+        return PostResponseDto.builder()
+                .id(fullPost.getId())
+                .userId(fullPost.getUser().getId())
+                .nickname(fullPost.getUser().getNickname())
+                .content(fullPost.getContent())
+                .imageUrlList(fullPost.getPostImageList().stream()
                         .map(PostImages::getImageUrl)
-                        .collect(Collectors.toList()),
-                fullPost.getCreatedAt(),
-                fullPost.getUpdatedAt()
-        );
+                        .collect(Collectors.toList()))
+                .createdAt(fullPost.getCreatedAt())
+                .updatedAt(fullPost.getUpdatedAt())
+                .likeCount(0L)
+                .likedByCurrentUser(false)
+                .build();
     }
 
     // 게시물 단건 조회
@@ -84,23 +88,28 @@ public class PostService {
         Posts post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("404: 게시물이 존재하지 않습니다."));
 
+        long likeCount = postLikeRepository.countByPost_Id(post.getId());
+        boolean likedByMe = postLikeRepository.existsByPost_IdAndUser_Id(post.getId(), currentUser.getId());
+
 //        // 2-1. 게시물 본인 것만 확인 가능
 //        if (!post.getUser().getId().equals(currentUser.getId())) {
 //            throw new IllegalArgumentException("403: 접근 권한이 없습니다.");
 //        }
 
         // 3. 응답 DTO 생성 및 반환
-        return new PostResponseDto(
-                post.getId(),
-                post.getUser().getId(),
-                post.getUser().getNickname(),
-                post.getContent(),
-                post.getPostImageList().stream()
+        return PostResponseDto.builder()
+                .id(post.getId())
+                .userId(post.getUser().getId())
+                .nickname(post.getUser().getNickname())
+                .content(post.getContent())
+                .imageUrlList(post.getPostImageList().stream()
                         .map(PostImages::getImageUrl)
-                        .collect(Collectors.toList()),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
+                        .collect(Collectors.toList()))
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .likeCount(likeCount)
+                .likedByCurrentUser(likedByMe)
+                .build();
     }
 
     // 게시물 전체 조회 (페이징 처리)
@@ -116,21 +125,28 @@ public class PostService {
         // 1. 페이징 요청 설정 (최신순 정렬)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
         // 2. 페이징 조회
-        Page<Posts> postsPage = postRepository.findAll(pageRequest);
+        Page<Posts> postsPage = postRepository.findAllVisibleToUser(currentUser.getId(), pageRequest);
 
         // 3. 각 게시물마다 DTO로 변환
         List<PostResponseDto> postDtosList = postsPage.getContent().stream()
-                .map(post -> new PostResponseDto(
-                        post.getId(),
-                        post.getUser().getId(),
-                        post.getUser().getNickname(),
-                        post.getContent(),
-                        post.getPostImageList().stream()
-                                .map(PostImages::getImageUrl)
-                                .collect(Collectors.toList()),
-                        post.getCreatedAt(),
-                        post.getUpdatedAt()
-                ))
+                .map(post -> {
+                    long likeCount = postLikeRepository.countByPost_Id(post.getId());
+                    boolean likedByMe = postLikeRepository.existsByPost_IdAndUser_Id(post.getId(), currentUser.getId());
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .userId(post.getUser().getId())
+                            .nickname(post.getUser().getNickname())
+                            .content(post.getContent())
+                            .imageUrlList(post.getPostImageList().stream()
+                                    .map(PostImages::getImageUrl)
+                                    .collect(Collectors.toList()))
+                            .createdAt(post.getCreatedAt())
+                            .updatedAt(post.getUpdatedAt())
+                            .likeCount(likeCount)
+                            .likedByCurrentUser(likedByMe)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         // 4. 페이징 결과 포함한 DTO 반환

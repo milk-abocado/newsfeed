@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -22,8 +23,10 @@ public class UserProfileResponseDto {
     private String school;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int knowFollower;
+    private List<FollowListDto> knowFollowers;
 
-    public UserProfileResponseDto(Users user) {
+    public UserProfileResponseDto(Users user, int knowFollower, List<FollowListDto> knowFollowers) {
         this.email = user.getEmail();
         this.name = user.getName();
         this.nickname = user.getNickname();
@@ -33,5 +36,7 @@ public class UserProfileResponseDto {
         this.school = user.getSchool();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
+        this.knowFollower = knowFollower;
+        this.knowFollowers = knowFollowers;
     }
 }

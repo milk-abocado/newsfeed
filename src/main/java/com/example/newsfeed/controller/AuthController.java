@@ -2,6 +2,7 @@ package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.EmailRequestDto;
 import com.example.newsfeed.dto.AuthLoginRequestDto;
+import com.example.newsfeed.dto.ResetPasswordRequestDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.dto.AuthRequestDto;
 import com.example.newsfeed.service.EmailService;
@@ -30,7 +31,7 @@ public class AuthController {
         }
         try {
             Users user = authService.signup(request);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.CREATED); // 상태 코드 수정
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -94,4 +95,17 @@ public class AuthController {
         session.invalidate();
         return ResponseEntity.ok("User " + userId + " (" + email + "): 로그아웃 완료");
     }
+
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
+        try {
+            String tempPassword = authService.resetPassword(request);
+            return ResponseEntity.ok("임시 비밀번호가 발급되었습니다. (" + tempPassword + ")");
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
 }
