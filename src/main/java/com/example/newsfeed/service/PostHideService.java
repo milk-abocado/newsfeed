@@ -40,6 +40,7 @@ public class PostHideService {
      * - 팔로우(수락)하지 않음 → 404
      * - 이미 숨김 → 200(멱등), 기존 hiddenAt 유지
      */
+
     public PostHideResponseDto hidePost(Long myId, Long postId) {
         // 1) 게시물 존재/삭제 여부
         Posts post = postRepository.findByIdAndIsDeletedFalse(postId)
