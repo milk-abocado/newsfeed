@@ -59,4 +59,68 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
             @Param("end") LocalDateTime end,
             Pageable pageable
     );
+
+    /**
+     * 기간 필터 + 기본 정렬(페이지 정렬 사용) + 내가 숨긴 글 제외
+     * - userIds: 내 ID + 내가 팔로우한 사용자 IDs
+     * - me: 현재 로그인 사용자 ID (숨김 판단용)
+     */
+    @Query("""
+           SELECT p FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM PostHide h
+               WHERE h.user.id = :me
+                 AND h.post.id = p.id
+             )
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           """)
+    Page<Posts> findFeedExcludingHiddenByUserIdsAndDateRange(
+            @Param("me") Long me,
+            @Param("userIds") List<Long> userIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
+
+    /**
+     * 기간 필터 + 좋아요 많은 순 + 내가 숨긴 글 제외
+     */
+    @Query(value = """
+           SELECT p
+           FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM PostHide h
+               WHERE h.user.id = :me
+                 AND h.post.id = p.id
+             )
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           ORDER BY (SELECT COUNT(pl) FROM PostLike pl WHERE pl.post = p) DESC,
+                    p.updatedAt DESC
+           """,
+            countQuery = """
+           SELECT COUNT(p)
+           FROM Posts p
+           WHERE p.isDeleted = false
+             AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM PostHide h
+               WHERE h.user.id = :me
+                 AND h.post.id = p.id
+             )
+             AND (:start IS NULL OR p.createdAt >= :start)
+             AND (:end   IS NULL OR p.createdAt <  :end)
+           """)
+    Page<Posts> findFeedExcludingHiddenByUserIdsAndDateRangeOrderByLikeCountDesc(
+            @Param("me") Long me,
+            @Param("userIds") List<Long> userIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
 }
