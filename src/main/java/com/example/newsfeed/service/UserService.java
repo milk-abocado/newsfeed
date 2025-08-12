@@ -1,6 +1,7 @@
 package com.example.newsfeed.service;
 
 import com.example.newsfeed.dto.ChangePasswordRequestDto;
+import com.example.newsfeed.dto.FollowListDto;
 import com.example.newsfeed.dto.UserProfileUpdateRequestDto;
 import com.example.newsfeed.dto.UserProfileResponseDto;
 import com.example.newsfeed.entity.ProfileUpdateHistory;
@@ -9,6 +10,7 @@ import com.example.newsfeed.exception.AlreadyDeletedException;
 import com.example.newsfeed.exception.InvalidCredentialsException;
 import com.example.newsfeed.exception.PasswordRequiredException;
 import com.example.newsfeed.repository.AuthRepository;
+import com.example.newsfeed.repository.FollowsRepository;
 import com.example.newsfeed.repository.ProfileUpdateHistoryRepository;
 import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -30,15 +33,39 @@ public class UserService {
     private final AuthRepository authRepository;
     private final ProfileUpdateHistoryRepository profileUpdateHistoryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FollowsRepository followsRepository;
 
     // 프로필 조회
     @Transactional(readOnly = true)
-    public UserProfileResponseDto getUserProfile(Long userId) {
+    public UserProfileResponseDto getUserProfile(Long userId, Long loginUserId) {
         Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."
                 ));
-        return new UserProfileResponseDto(user);
+
+        // 내가 팔로워한 사람 리스트
+        List<Long> myFollowings = followsRepository.findByFollowerIdAndStatus(loginUserId, true)
+                .stream()
+                .map(f -> f.getFollowing().getId())
+                .toList();
+
+        // 타겟 사용자를 팔로워한 사람 리스트
+        List<Long> targetFollowers = followsRepository.findByFollowingIdAndStatus(userId, true)
+                .stream()
+                .map(f -> f.getFollower().getId())
+                .toList();
+
+        List<Long> knowIds = myFollowings.stream()
+                .filter(targetFollowers::contains)
+                .toList();
+
+        List<Users> knowUsers = userRepository.findAllById(knowIds);
+        List<FollowListDto> knowFollowers = knowUsers.stream()
+                .map(u -> new FollowListDto(u.getId(), u.getNickname()))
+                .toList();
+        int knowFollower = knowFollowers.size();
+
+        return new UserProfileResponseDto(user, knowFollower, knowFollowers);
     }
 
     // 프로필 수정
