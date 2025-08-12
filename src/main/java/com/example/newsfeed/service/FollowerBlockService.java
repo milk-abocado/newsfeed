@@ -38,13 +38,16 @@ public class FollowerBlockService {
         if (blockedUserOptional.isEmpty()) {
             throw new IllegalStateException("사용자가 차단되지 않았습니다.");
         }
+        followerBlockRepository.delete(blockedUserOptional.get());
+        return "사용자 차단이 성공적으로 해제되었습니다.";
+    }
 
-    //3.차단 목록 조회
+    //3.차단한 사용자 목록 조회
     public List<BlockedUser> getBlockedUsers(Long userId) {
         return followerBlockRepository.findAllByUserId(userId);
     }
 
-    //4.차단 여부 확인
+    //4.특정 사용자 차단 여부 확인
     public boolean isBlocked(Long userId, Long targetUserId) {
         return FollowerBlockRepository.existsByUserIdAndTargetUserId(userId, targetUserId);
     }

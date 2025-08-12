@@ -40,7 +40,7 @@ public class FollowerBlockController {
             @RequestBody BlockRequestDto requestDto,
             Principal principal) {
         Long userId = Long.valueOf(principal.getName());
-        String message = followerBlockService.unblockUser(userId, requestDto);
+        String message = String.valueOf(followerBlockService.unblockUser(userId, requestDto));
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
