@@ -12,7 +12,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class FollowerBlockService {
-    private final FollowerBlockService followerBlockService;
     private final FollowerBlockRepository followerBlockRepository;
 
     //1.사용자 차단
