@@ -3,7 +3,6 @@ package com.example.newsfeed.service;
 
 import com.example.newsfeed.config.PasswordEncoder;
 import com.example.newsfeed.dto.AuthRequestDto;
-import com.example.newsfeed.dto.ResetPasswordRequestDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.repository.AuthRepository;
 import jakarta.transaction.Transactional;
@@ -11,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
@@ -80,33 +78,6 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         return user;
-    }
-
-    // 비밀번호 찾기
-    @Transactional
-    public String resetPassword(ResetPasswordRequestDto request) {
-
-        Users user = authRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 이메일입니다."));
-
-        // 비밀번호 찾기용 질문 확인
-        if (!user.getSecurityQuestion().equals(request.getSecurityQuestion())) {
-            throw new IllegalArgumentException("질문이 일치하지 않습니다.");
-        }
-
-        // 비밀번호 찾기용 답 확인
-        if (!user.getSecurityAnswer().equals(request.getSecurityAnswer())) {
-            throw new IllegalArgumentException("답이 일치하지 않습니다.");
-        }
-
-        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
-        String encodedPassword = passwordEncoder.encode(tempPassword);
-
-        user.setPassword(encodedPassword);
-
-        System.out.println("임시 비밀번호: " + tempPassword);
-
-        return tempPassword;
     }
 
 }
