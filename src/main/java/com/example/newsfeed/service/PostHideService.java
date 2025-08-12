@@ -60,7 +60,7 @@ public class PostHideService {
                 .orElse(Boolean.FALSE);
 
         if (!followingAccepted) {
-            throw notFound();
+            throw followNotAccepted();
         }
 
         // 4) 이미 숨김이면 멱등 응답(기존 createdAt 사용)
@@ -105,5 +105,9 @@ public class PostHideService {
 
     private ResponseStatusException selfHideNotAllowed() {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "본인 게시물은 차단할 수 없습니다.");
+    }
+
+    private ResponseStatusException followNotAccepted() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "팔로우한 사용자의 게시물이 아닙니다.");
     }
 }
