@@ -133,7 +133,7 @@ public class PostService {
         // 1. 페이징 요청 설정 (최신순 정렬)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
         // 2. 페이징 조회
-        Page<Posts> postsPage = postRepository.findAll(pageRequest);
+        Page<Posts> postsPage = postRepository.findAllVisibleToUser(currentUser.getId(), pageRequest);
 
         // 3. 각 게시물마다 DTO로 변환
         List<PostResponseDto> postDtosList = postsPage.getContent().stream()

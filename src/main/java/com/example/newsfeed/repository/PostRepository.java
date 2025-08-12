@@ -123,4 +123,16 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
             @Param("end") LocalDateTime end,
             Pageable pageable
     );
+
+    @Query("""
+       SELECT p
+       FROM Posts p
+       WHERE p.isDeleted = false
+         AND NOT EXISTS (
+           SELECT 1 FROM PostHide h
+           WHERE h.user.id = :me
+             AND h.post.id = p.id
+         )
+       """)
+    Page<Posts> findAllVisibleToUser(@Param("me") Long me, Pageable pageable);
 }
