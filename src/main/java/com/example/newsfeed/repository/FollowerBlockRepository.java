@@ -10,7 +10,5 @@ public interface FollowerBlockRepository extends JpaRepository<BlockedUser, Long
     Optional<BlockedUser> findByUserIdAndTargetUserId(Long userId, Long targetUserId);
     List<BlockedUser> finAllByUserId(Long userId); //userId가 특정값인 모든 BlockedUser Entity 조회
     //userId와 targetUserId가 모두 일치하는 레코드 존재하는지 여부 확인
-    boolean existsByUserIdAndTargetUserId(Long userId, Long targetUserId);
-
-
+    static boolean existsByUserIdAndTargetUserId(Long userId, Long targetUserId);
 }
