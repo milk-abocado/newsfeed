@@ -32,4 +32,5 @@ public class PostHideController {
         PostHideResponseDto res = postHideService.hidePost(loginUser.getId(), postId);
         return ResponseEntity.ok(res);
     }
+
 }
