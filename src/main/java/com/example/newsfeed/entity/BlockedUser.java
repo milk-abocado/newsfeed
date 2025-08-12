@@ -19,7 +19,9 @@ public class BlockedUser {
     private Long id;
 
     //차단한 사람
+    @Column(name = "user_id")
     private Long userId;
     //차단당한 사람
+    @Column(name = "target_user_id")
     private Long targetUserId;
 }
