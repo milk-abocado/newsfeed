@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자 보호
-public class HiddenPost {
+public class PostHide {
 
     //PK
     @Id
@@ -50,7 +50,7 @@ public class HiddenPost {
      * @param post 숨김 대상 게시물
      */
 
-    public HiddenPost(Users user, Posts post) {
+    public PostHide(Users user, Posts post) {
         this.user = user;
         this.post = post;
     }
