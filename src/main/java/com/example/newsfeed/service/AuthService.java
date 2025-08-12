@@ -96,7 +96,7 @@ public class AuthService {
 
         // 비밀번호 찾기용 답 확인
         if (!user.getSecurityAnswer().equals(request.getSecurityAnswer())) {
-            throw new IllegalArgumentException("질문이 일치하지 않습니다.");
+            throw new IllegalArgumentException("답이 일치하지 않습니다.");
         }
 
         String tempPassword = UUID.randomUUID().toString().substring(0, 8);
