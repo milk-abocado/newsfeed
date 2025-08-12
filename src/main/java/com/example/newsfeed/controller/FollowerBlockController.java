@@ -68,4 +68,8 @@ public class FollowerBlockController {
         response.put("blocked", blocked);
         return ResponseEntity.ok(response);
     }
+
+    public FollowerBlockService getService() {
+        return followerBlockService;
+    }
 }
