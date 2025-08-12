@@ -59,9 +59,13 @@ public class CommentController {
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "10") int size,
                                   HttpSession session) {
+        Users loginUser = (Users) session.getAttribute("user");
+        if (loginUser == null) {
+            // 401 Unauthorized: 로그인 필요
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
+        }
         try {
-            Users loginUser = (Users) session.getAttribute("user");
-            Long currentUserId = (loginUser == null) ? null : loginUser.getId();
+            Long currentUserId = loginUser.getId();
 
             CommentsPageResponseDto res = commentService.getList(postId, page, size, currentUserId);
             return ResponseEntity.ok(res);

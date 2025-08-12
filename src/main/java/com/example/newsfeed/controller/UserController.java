@@ -22,8 +22,15 @@ public class UserController {
 
     // 프로필 조회
     @GetMapping("/{userId}")
-    public UserProfileResponseDto getUserProfile(@PathVariable Long userId) {
-        return userService.getUserProfile(userId);
+    public ResponseEntity<?> getUserProfile(@PathVariable Long userId,
+                                                 HttpSession session) {
+        Users loginUser = (Users) session.getAttribute("user");
+
+        if (loginUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
+        }
+        UserProfileResponseDto profile = userService.getUserProfile(userId, loginUser.getId());
+        return ResponseEntity.ok(profile);
     }
 
     // 프로필 수정
