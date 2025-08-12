@@ -53,8 +53,12 @@ public class PostFeedService {
         if ("likes".equalsIgnoreCase(sort)) {
             // 좋아요 많은 순은 JPQL에서 ORDER BY 처리하므로 Pageable은 정렬 없이 전달
             Pageable noSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            postsPage = postRepository.findFeedByUserIdsAndDateRangeOrderByLikeCountDesc(
-                    followingUserIds, startDt, endExclusive, noSort
+            postsPage = postRepository.findFeedExcludingHiddenByUserIdsAndDateRangeOrderByLikeCountDesc(
+                    userId,                 // 게시물 차단 기능으로 인해 추가
+                    followingUserIds,
+                    startDt,
+                    endExclusive,
+                    noSort
             );
         } else {
             // 기본: 수정일 최신순
@@ -62,8 +66,12 @@ public class PostFeedService {
                     pageable.getPageNumber(), pageable.getPageSize(),
                     Sort.by(Sort.Direction.DESC, "updatedAt")
             );
-            postsPage = postRepository.findFeedByUserIdsAndDateRange(
-                    followingUserIds, startDt, endExclusive, updatedSort
+            postsPage = postRepository.findFeedExcludingHiddenByUserIdsAndDateRange(
+                    userId,                 // 게시물 차단 기능으로 인해 추가
+                    followingUserIds,
+                    startDt,
+                    endExclusive,
+                    updatedSort
             );
         }
 
