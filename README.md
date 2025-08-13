@@ -212,10 +212,8 @@ cd newsfeed
 ---
 
 ## 🎨 와이어프레임
-- 사진
-- **Figma**: [여기에 피그마 링크 입력](https://www.figma.com/file/your-figma-link)
-
----
+- **Figma**: 
+--<iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://embed.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&embed-host=share" allowfullscreen></iframe>
 
 ## 📏 Team Code Convention
 
