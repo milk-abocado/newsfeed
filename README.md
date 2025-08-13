@@ -1,5 +1,5 @@
-# 📌 Newsfeed (뉴스피드)
-
+# 📌 SFeed (스피드)
+<img width="406" height="406" alt="Image" src="https://github.com/user-attachments/assets/8f84390a-ecc1-4431-a7bc-77132a9310dd" />
 ---
 
 ## 📝 프로젝트 개요
