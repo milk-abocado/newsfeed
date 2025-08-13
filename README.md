@@ -207,7 +207,7 @@ cd newsfeed
 ---
 
 ## 🗂 ERD
-<img width="986" height="808" alt="Image" src="https://github.com/user-attachments/assets/76bdded9-9ebf-4a92-9fb8-2a26bf7eae28" />
+<img width="1856" height="1280" alt="Image" src="https://github.com/user-attachments/assets/ec798339-93d7-41ff-8de1-06d0a004513c" />
 
 ---
 
