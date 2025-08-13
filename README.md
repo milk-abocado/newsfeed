@@ -202,7 +202,7 @@ cd newsfeed
 ---
 
 ## 📌 API
-- (추가 예정)
+<img width="986" height="808" alt="Image" src="https://github.com/user-attachments/assets/76bdded9-9ebf-4a92-9fb8-2a26bf7eae28" />
 
 ---
 
