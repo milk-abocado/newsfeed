@@ -25,7 +25,6 @@ public class FollowReadController {
      * - 특정 userId가 '팔로우하는 사용자' 목록을 반환
      * - accepted 파라미터로 '수락된 친구(true)' 또는 '대기중 요청(false)'만 필터링 가능
      * - 로그인한 사용자 본인만 자신의 목록을 조회할 수 있음
-     *
      * 예시 요청: GET /follows/{userId}/following?accepted=true&page=0&size=5
      */
     @GetMapping("/{userId}/following")
@@ -35,25 +34,29 @@ public class FollowReadController {
                                           @RequestParam(defaultValue = "10") int size,
                                           HttpSession session) {
 
-        // 세션에서 로그인 사용자 조회
+        // 1. 세션에서 로그인 사용자 정보 가져오기
         Users viewer = (Users) session.getAttribute("user");
         if (viewer == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+        // 2. 조회 대상 유저 존재 여부 확인
         if (!userRepository.existsById(userId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
         }
 
-        // 본인만 자신의 팔로잉 목록 조회 가능
+        // 3. 본인만 자신의 팔로잉 목록을 조회할 수 있도록 제한
         if (!viewer.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인만 조회할 수 있습니다.");
         }
 
-        // 최신 id 기준 내림차순 정렬 + 페이지네이션
+        // 4. 페이지네이션 및 정렬 조건 생성 (id 내림차순)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+
+        // 5. 서비스 계층 호출하여 팔로잉 목록 가져오기
         Page<UserSummaryDto> pageResult =
                 followReadService.getFollowingList(viewer.getId(), userId, accepted, pageable);
 
+        // 6. 페이지 객체를 DTO 형태로 변환 후 응답
         return ResponseEntity.ok(toResponse(pageResult));
     }
 
@@ -62,7 +65,6 @@ public class FollowReadController {
      * - 특정 userId를 '팔로우하는 사용자' 목록을 반환
      * - accepted 파라미터로 '수락된 친구(true)' 또는 '대기중 요청(false)'만 필터링 가능
      * - 로그인한 사용자 본인만 자신의 목록을 조회할 수 있음
-     *
      * 예시 요청: GET /follows/{userId}/followers?accepted=false&page=0&size=5
      */
     @GetMapping("/{userId}/followers")
@@ -72,23 +74,30 @@ public class FollowReadController {
                                           @RequestParam(defaultValue = "10") int size,
                                           HttpSession session) {
 
+        // 1. 로그인 여부 확인
         Users viewer = (Users) session.getAttribute("user");
         if (viewer == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+
+        // 2. 대상 사용자 존재 여부 확인
         if (!userRepository.existsById(userId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
         }
 
-        // 본인만 자신의 팔로워 목록 조회 가능
+        // 3. 본인만 자신의 팔로워 목록 조회 가능
         if (!viewer.getId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인만 조회할 수 있습니다.");
         }
 
+        // 4. 페이지네이션 및 정렬 조건 (id 내림차순)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+
+        // 5. 서비스 호출하여 팔로워 목록 조회
         Page<UserSummaryDto> pageResult =
                 followReadService.getFollowerList(viewer.getId(), userId, accepted, pageable);
 
+        // 6. 변환 후 반환
         return ResponseEntity.ok(toResponse(pageResult));
     }
 
@@ -96,23 +105,30 @@ public class FollowReadController {
      * > 팔로우 상태 단건 조회
      * - 로그인한 사용자(viewer)와 targetId 간의 팔로우/친구 상태를 조회
      * - 본인 자신을 대상으로 조회할 수 없음
-     *
      * 예시 요청: GET /follows/status/targetId}
      */
     @GetMapping("/status/{targetId}")
     public ResponseEntity<?> getFollowStatus(@PathVariable Long targetId, HttpSession session) {
+        // 1. 로그인 여부 확인
         Users viewer = (Users) session.getAttribute("user");
         if (viewer == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+
+        // 2. 본인 자신 조회 방지
         if (viewer.getId().equals(targetId)) {
             return ResponseEntity.badRequest().body("본인 대상 상태 조회는 의미가 없습니다.");
         }
+
+        // 3. 대상 사용자 존재 여부 확인
         if (!userRepository.existsById(targetId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
         }
 
+        // 4. 서비스 호출하여 팔로우 상태 조회
         FollowStatusDto status = followReadService.getFollowStatus(viewer.getId(), targetId);
+
+        // 5. 결과 반환
         return ResponseEntity.ok(status);
     }
 

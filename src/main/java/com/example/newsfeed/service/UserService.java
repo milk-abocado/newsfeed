@@ -9,10 +9,7 @@ import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.exception.AlreadyDeletedException;
 import com.example.newsfeed.exception.InvalidCredentialsException;
 import com.example.newsfeed.exception.PasswordRequiredException;
-import com.example.newsfeed.repository.AuthRepository;
-import com.example.newsfeed.repository.FollowsRepository;
-import com.example.newsfeed.repository.ProfileUpdateHistoryRepository;
-import com.example.newsfeed.repository.UserRepository;
+import com.example.newsfeed.repository.*;
 import lombok.RequiredArgsConstructor;
 import com.example.newsfeed.config.PasswordEncoder;
 import org.springframework.http.HttpStatus;
@@ -34,10 +31,16 @@ public class UserService {
     private final ProfileUpdateHistoryRepository profileUpdateHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final FollowsRepository followsRepository;
+    private final FollowerBlockRepository followerBlockRepository;
 
     // 프로필 조회
     @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId, Long loginUserId) {
+        // 내가 차단한 경우 → 바로 예외
+        if (followerBlockRepository.existsByUserIdAndTargetUserId(loginUserId, userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "차단한 사용자입니다.");
+        }
+
         Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."

@@ -61,9 +61,9 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
     );
 
     /**
-     * 기간 필터 + 기본 정렬(페이지 정렬 사용) + 내가 숨긴 글 제외
+     * 기간 필터 + 기본 정렬(페이지 정렬 사용) + 내가 숨긴 글 제외 + 차단된 사용자 게시글 제외
      * - userIds: 내 ID + 내가 팔로우한 사용자 IDs
-     * - me: 현재 로그인 사용자 ID (숨김 판단용)
+     * - me: 현재 로그인 사용자 ID (숨김/차단 판단용)
      */
     @Query("""
            SELECT p FROM Posts p
@@ -73,6 +73,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                SELECT 1 FROM PostHide h
                WHERE h.user.id = :me
                  AND h.post.id = p.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :me
+                 AND b1.targetUserId = p.user.id
              )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
@@ -86,7 +91,7 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
     );
 
     /**
-     * 기간 필터 + 좋아요 많은 순 + 내가 숨긴 글 제외
+     * 기간 필터 + 좋아요 많은 순 + 내가 숨긴 글 제외 + 차단된 사용자 게시글 제외
      */
     @Query(value = """
            SELECT p
@@ -97,6 +102,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                SELECT 1 FROM PostHide h
                WHERE h.user.id = :me
                  AND h.post.id = p.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :me
+                 AND b1.targetUserId = p.user.id
              )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
@@ -113,6 +123,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                WHERE h.user.id = :me
                  AND h.post.id = p.id
              )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :me
+                 AND b1.targetUserId = p.user.id
+             )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
            """)
@@ -124,6 +139,7 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
             Pageable pageable
     );
 
+    // 게시물 전체 조회: 숨김 + 차단된 사용자 게시글 제외
     @Query("""
        SELECT p
        FROM Posts p
@@ -132,6 +148,16 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
            SELECT 1 FROM PostHide h
            WHERE h.user.id = :me
              AND h.post.id = p.id
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM BlockedUser b1
+           WHERE b1.userId = :me
+             AND b1.targetUserId = p.user.id
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM BlockedUser b2
+           WHERE b2.targetUserId = :me
+             AND b2.userId = p.user.id
          )
        """)
     Page<Posts> findAllVisibleToUser(@Param("me") Long me, Pageable pageable);

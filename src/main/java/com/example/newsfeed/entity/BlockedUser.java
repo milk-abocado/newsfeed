@@ -2,6 +2,7 @@ package com.example.newsfeed.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +22,12 @@ public class BlockedUser {
     //차단한 사람
     @Column(name = "user_id")
     private Long userId;
+
     //차단당한 사람
     @Column(name = "target_user_id")
     private Long targetUserId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
