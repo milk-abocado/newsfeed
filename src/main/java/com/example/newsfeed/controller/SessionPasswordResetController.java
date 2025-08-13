@@ -3,9 +3,9 @@ package com.example.newsfeed.controller;
 import com.example.newsfeed.config.PasswordEncoder;
 import com.example.newsfeed.dto.PasswordResetResetRequestDto;
 import com.example.newsfeed.dto.PasswordResetForgotRequestDto;
-import com.example.newsfeed.dto.PasswordResetResetRequestDto;
 import com.example.newsfeed.dto.PasswordResetVerifyRequestDto;
 import com.example.newsfeed.entity.Users;
+import com.example.newsfeed.repository.AuthRepository;
 import com.example.newsfeed.repository.UserRepository;
 import com.example.newsfeed.service.MailService;
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +19,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/auth/password/session")
@@ -33,36 +34,59 @@ public class SessionPasswordResetController {
 
     private final MailService mailService;
     private final UserRepository userRepository;
+    private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom random = new SecureRandom();
+
+    // password 형식
+    private static final Pattern password_Pattern = Pattern.compile("^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$");
+
 
     @PostMapping("/forgot")
     public ResponseEntity<String> forgot(@Valid @RequestBody PasswordResetForgotRequestDto req,
                                          HttpSession session) {
-        String safeResponse = "비밀번호 재설정 안내가 전송되었다면 곧 도착합니다.";
-        if (!StringUtils.hasText(req.getEmail())) return ResponseEntity.ok(safeResponse);
+        try {
+            Users user = authRepository.findByEmail(req.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 이메일입니다."));
 
-        Optional<Users> userOpt = userRepository.findByEmailAndIsDeletedFalse(req.getEmail());
-        if (userOpt.isEmpty()) return ResponseEntity.ok(safeResponse);
+            // 비밀번호 찾기용 질문 확인
+            if (!user.getSecurityQuestion().equals(req.getSecurityQuestion())) {
+                throw new IllegalArgumentException("질문이 일치하지 않습니다.");
+            }
 
-        String code = generate6DigitCode();
-        Instant expiresAt = Instant.now().plus(EXPIRE_MINUTES, ChronoUnit.MINUTES);
+            // 비밀번호 찾기용 답 확인
+            if (!user.getSecurityAnswer().equals(req.getSecurityAnswer())) {
+                throw new IllegalArgumentException("답이 일치하지 않습니다.");
+            }
 
-        session.setAttribute(KEY_EMAIL, req.getEmail());
-        session.setAttribute(KEY_CODE, code);
-        session.setAttribute(KEY_EXPIRES_AT, expiresAt);
-        session.setAttribute(KEY_VERIFIED, Boolean.FALSE);
+            String safeResponse = "비밀번호 재설정 안내가 전송되었다면 곧 도착합니다.";
+            if (!StringUtils.hasText(req.getEmail())) return ResponseEntity.ok(safeResponse);
 
-        String subject = "[Newsfeed] 비밀번호 재설정 인증코드";
-        String body = """
-                아래 인증코드를 입력해 비밀번호 재설정을 진행해 주세요. (유효시간 %d분)
-                인증코드: %s
+            Optional<Users> userOpt = userRepository.findByEmailAndIsDeletedFalse(req.getEmail());
+            if (userOpt.isEmpty()) return ResponseEntity.ok(safeResponse);
 
-                본인이 요청하지 않았다면 이 메일을 무시하세요.
-                """.formatted(EXPIRE_MINUTES, code);
+            String code = generate6DigitCode();
+            Instant expiresAt = Instant.now().plus(EXPIRE_MINUTES, ChronoUnit.MINUTES);
 
-        mailService.send(req.getEmail(), subject, body);
-        return ResponseEntity.ok(safeResponse);
+            session.setAttribute(KEY_EMAIL, req.getEmail());
+            session.setAttribute(KEY_CODE, code);
+            session.setAttribute(KEY_EXPIRES_AT, expiresAt);
+            session.setAttribute(KEY_VERIFIED, Boolean.FALSE);
+
+            String subject = "[Newsfeed] 비밀번호 재설정 인증코드";
+            String body = """
+                    아래 인증코드를 입력해 비밀번호 재설정을 진행해 주세요. (유효시간 %d분)
+                    인증코드: %s
+                    
+                    본인이 요청하지 않았다면 이 메일을 무시하세요.
+                    """.formatted(EXPIRE_MINUTES, code);
+
+            mailService.send(req.getEmail(), subject, body);
+            return ResponseEntity.ok(safeResponse);
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/verify")
@@ -100,6 +124,13 @@ public class SessionPasswordResetController {
             return ResponseEntity.badRequest().body("인증이 만료되었습니다. 처음부터 다시 진행해주세요.");
         }
 
+        // 비밀번호 형식 검사 추가
+        String newPassword = req.getNewPassword();
+        if (!password_Pattern.matcher(newPassword).matches()) {
+            return ResponseEntity.badRequest().body(
+                    "비밀번호는 최소 8자 이상이며, 영문자, 숫자, 특수문자(!@#$%^&*)를 모두 포함해야 합니다."
+            );
+        }
         Users user = userRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 

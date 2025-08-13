@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController                 // REST API 컨트롤러임을 명시
 @RequiredArgsConstructor        // 생성자 주입을 위한 Lombok 어노테이션
@@ -37,47 +38,77 @@ public class PostController {
         }
 
         Users loggedInUser = (Users) session.getAttribute("user");
+        if (loggedInUser == null) {
+            return ResponseEntity.status(401).body("로그인하지 않은 사용자입니다.");
+        }
 
-        // 게시물 생성 후 응답 반환
-        PostResponseDto responseDto = postService.createPost(requestDto, loggedInUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        try {
+            PostResponseDto res = postService.createPost(requestDto, loggedInUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(res); // 정상은 JSON
+        } catch (ResponseStatusException ex) {
+            // 서비스에서 ResponseStatusException 던진 경우 -> 문자열만
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        } catch (IllegalArgumentException ex) {
+            // 혹시 기존 "401: ..." 패턴을 쓰는 코드가 남아있다면 안전망
+            String msg = ex.getMessage();
+            if (msg != null && msg.startsWith("401:")) {
+                return ResponseEntity.status(401).body(msg.substring(4));
+            } else if (msg != null && msg.startsWith("404:")) {
+                return ResponseEntity.status(404).body(msg.substring(4));
+            }
+            return ResponseEntity.status(400).body(msg != null ? msg : "잘못된 요청입니다.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
+        }
     }
 
     // 게시물 단건 조회 API
     @GetMapping("/{postId}")
     public ResponseEntity<?> getPostById(@PathVariable Long postId, HttpSession session) {
+        Users loggedInUser = (Users) session.getAttribute("user");
+
+        if (loggedInUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인하지 않은 사용자입니다");
+        }
+
         try {
-            Users loggedInUser = (Users) session.getAttribute("user");
-
-            // 게시물 ID로 조회
-            PostResponseDto responseDto = postService.getPostById(postId, loggedInUser);
-            return ResponseEntity.ok(responseDto);
-
-        } catch (IllegalArgumentException e) {
-            // 예외 메시지 앞부분에 따라 HTTP 상태 코드 분기
-            String msg = e.getMessage();
-            if (msg.startsWith("401:")) {
-                return ResponseEntity.status(401).body(msg.substring(4));
-            } else if (msg.startsWith("404:")) {
+            PostResponseDto res = postService.getPostById(postId, loggedInUser);
+            return ResponseEntity.ok(res); // 정상은 JSON
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason()); // 문자열만
+        } catch (IllegalArgumentException ex) {
+            String msg = ex.getMessage();
+            if (msg != null && msg.startsWith("404:")) {
                 return ResponseEntity.status(404).body(msg.substring(4));
-            } else {
-                return ResponseEntity.status(400).body(msg); // 기타 예외
             }
+            if (msg != null && msg.startsWith("401:")) {
+                return ResponseEntity.status(401).body(msg.substring(4));
+            }
+            return ResponseEntity.status(400).body(msg != null ? msg : "잘못된 요청입니다.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
         }
     }
 
     // 게시물 전체 조회 API (페이징 지원)
     @GetMapping
-    public ResponseEntity<PostPageResponseDto> getAllPosts(
-            @RequestParam(defaultValue = "0") int page,  // 기본값 0 (첫 페이지)
-            @RequestParam(defaultValue = "10") int size,  // 기본값 10개씩
-            HttpSession session
-    ) {
-        Users loggedInUser = (Users) session.getAttribute("user");
+    public ResponseEntity<?> getAllPosts(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size,
+                                         HttpSession session) {
+        Users user = (Users) session.getAttribute("user");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("로그인하지 않은 사용자입니다.");
+        }
 
-        // 전체 게시물 조회 및 페이징 처리
-        PostPageResponseDto response = postService.getAllPosts(page, size, loggedInUser);
-        return ResponseEntity.ok(response);
+        try {
+            PostPageResponseDto res = postService.getAllPosts(page, size, user);
+            return ResponseEntity.ok(res); // 정상은 JSON
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
+        }
     }
-
 }

@@ -25,6 +25,8 @@ public class AuthService {
     // email 형식
     private static final Pattern email_Pattern = Pattern.compile("^[a-zA-Z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
+
+    // 회원가입
     @Transactional
     public Users signup(AuthRequestDto request) {
         if(!email_Pattern.matcher(request.getEmail()).matches()) {
@@ -57,9 +59,11 @@ public class AuthService {
         return authRepository.save(user);
     }
 
-    // login
+    // 로그인
     public Users login(String email, String rawPassword) {
         Optional<Users> userEmail = authRepository.findByEmail(email);
+
+        // 이메일 확인
         if (userEmail.isEmpty()) {
             throw new IllegalArgumentException("등록되지 않은 이메일입니다.");
         }

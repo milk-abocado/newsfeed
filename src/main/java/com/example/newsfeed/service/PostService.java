@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +31,12 @@ public class PostService {
     // @param user 게시물 작성자 (현재는 mock 유저)
     // @return 생성된 게시물의 응답 DTO
     public PostResponseDto createPost(PostRequestDto requestDto, Users user) {
+        // 로그인 여부 선검사
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인하지 않은 사용자입니다.");
+        }
+
+        // 닉네임 기본값 처리 (원하면 삭제 가능)
         if (user.getNickname() == null) {
             user.setNickname("user");
         }
@@ -81,12 +89,12 @@ public class PostService {
     public PostResponseDto getPostById(Long postId, Users currentUser) {
         // 1. 사용자 인증 확인
         if (currentUser == null) {
-            throw new IllegalArgumentException("401: 로그인하지 않은 사용자입니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인하지 않은 사용자입니다.");
         }
 
         // 2. 게시물 존재 여부 확인
         Posts post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("404: 게시물이 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "게시물이 존재하지 않습니다."));
 
         long likeCount = postLikeRepository.countByPost_Id(post.getId());
         boolean likedByMe = postLikeRepository.existsByPost_IdAndUser_Id(post.getId(), currentUser.getId());
@@ -119,13 +127,13 @@ public class PostService {
     // @return 페이징 처리된 게시물 리스트 DTO
     public PostPageResponseDto getAllPosts(int page, int size, Users currentUser) {
         if (currentUser == null) {
-            throw new IllegalArgumentException("401: 로그인하지 않은 사용자입니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인하지 않은 사용자입니다.");
         }
 
         // 1. 페이징 요청 설정 (최신순 정렬)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
         // 2. 페이징 조회
-        Page<Posts> postsPage = postRepository.findAll(pageRequest);
+        Page<Posts> postsPage = postRepository.findAllVisibleToUser(currentUser.getId(), pageRequest);
 
         // 3. 각 게시물마다 DTO로 변환
         List<PostResponseDto> postDtosList = postsPage.getContent().stream()
