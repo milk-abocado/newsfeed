@@ -29,8 +29,14 @@ public class UserController {
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
         }
-        UserProfileResponseDto profile = userService.getUserProfile(userId, loginUser.getId());
-        return ResponseEntity.ok(profile);
+
+        try {
+            UserProfileResponseDto profile = userService.getUserProfile(userId, loginUser.getId());
+            return ResponseEntity.ok(profile);
+        } catch (ResponseStatusException e) {
+            // 차단한 사용자일 경우 403 + 메시지
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        }
     }
 
     // 프로필 수정

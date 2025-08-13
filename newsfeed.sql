@@ -1,9 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS newsfeed;
-
 USE newsfeed;
 
-CREATE TABLE users
-(
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -20,21 +18,7 @@ CREATE TABLE users
     is_deleted BOOLEAN DEFAULT FALSE
 );
 
-
-AFTER TABLE users MODIFY
-(
-      password VARCHAR(255) NULL,
-      name VARCHAR(100) NULL,
-      nickname VARCHAR(100) NULL,
-      bio TEXT NULL,
-      profile_image TEXT NULL,
-      hometown VARCHAR(100) NULL,
-      school VARCHAR(100) NULL
-
-);
-
-CREATE TABLE email_verifications
-(
+CREATE TABLE IF NOT EXISTS email_verifications (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
     verification_token VARCHAR(255) NOT NULL,
@@ -42,46 +26,49 @@ CREATE TABLE email_verifications
     is_verified BOOLEAN DEFAULT FALSE
 );
 
-
-CREATE TABLE posts
-(
+CREATE TABLE IF NOT EXISTS posts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    CONSTRAINT fk_posts_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE post_images
-(
+CREATE TABLE IF NOT EXISTS post_images (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     post_id BIGINT NOT NULL,
     image_url TEXT NOT NULL,
-    FOREIGN KEY (post_id) REFERENCES posts(id)
+    CONSTRAINT fk_post_images_post FOREIGN KEY (post_id) REFERENCES posts(id)
 );
 
-
-CREATE TABLE comments
-(
+CREATE TABLE IF NOT EXISTS comments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     post_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (post_id) REFERENCES posts(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts(id),
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-
-CREATE TABLE follows
-(
+CREATE TABLE IF NOT EXISTS follows (
     follower_id BIGINT NOT NULL,
     following_id BIGINT NOT NULL,
     status BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (follower_id, following_id),
-    FOREIGN KEY (follower_id) REFERENCES users(id),
-    FOREIGN KEY (following_id) REFERENCES users(id)
+    CONSTRAINT fk_follows_follower FOREIGN KEY (follower_id) REFERENCES users(id),
+    CONSTRAINT fk_follows_following FOREIGN KEY (following_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_block (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    target_user_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_block (user_id, target_user_id),
+    CONSTRAINT fk_user_block_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_user_block_target FOREIGN KEY (target_user_id) REFERENCES users(id)
 );
