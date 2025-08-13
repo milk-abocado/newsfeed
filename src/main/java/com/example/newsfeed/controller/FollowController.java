@@ -32,31 +32,51 @@ public class FollowController {
         // 로그인한 상태인지 확인
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new FollowResponseMessageDto("로그인이 필요합니다."));
+                    .body("로그인이 필요합니다.");
         }
 
         Long loggedInUserId = loginUser.getId();
-
         // 경로와 로그인한 사람이 같은지 확인
         if (!userId.equals(loggedInUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("자기 ID로만 친구 요청을 보낼 수 있습니다."));
+                    .body("자기 ID로만 친구 요청을 보낼 수 있습니다.");
         }
 
         Long targetFollowId = followRequestDto.getFollowId();
-
         // 자기 자신에게 요청하는지 체크
         if (loggedInUserId.equals(targetFollowId)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new FollowResponseMessageDto("자기 자신에게 친구 요청을 보낼 수 없습니다."));
+                    .body("자기 자신에게 친구 요청을 보낼 수 없습니다.");
         }
 
-        // 친구 요청 서비스 호출
-        followService.sendFollowRequest(followRequestDto, userId);
+        try {
+            // 서비스 호출 (서비스에서 모든 검증 및 메시지 예외 처리)
+            followService.sendFollowRequest(followRequestDto, userId);
 
-        // 친구 요청이 성공적으로 처리된 경우, 201 Created 상태를 반환
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new FollowResponseMessageDto("팔로우 요청이 완료되었습니다."));
+            // 성공: 201 Created
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("팔로우 요청이 완료되었습니다.");
+
+        } catch (IllegalStateException e) {
+            // 차단 상태 등 정책 위반
+            // 서비스 메시지: "차단 상태에서는 친구/팔로우 요청을 보낼 수 없습니다."
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            String msg = e.getMessage();
+            if (msg.contains("이미 친구 상태") || msg.contains("이미 팔로우 중")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(msg);
+            } else if (msg.contains("이미 대기 중")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(msg);
+            } else if (msg.contains("찾을 수 없습니다")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("서버 오류가 발생했습니다.");
+        }
     }
 
     // 친구 수락 (PATCH /followers/{userId}/accept)
@@ -71,7 +91,7 @@ public class FollowController {
         // 로그인한 상태인지 확인
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new FollowResponseMessageDto("로그인이 필요합니다."));
+                    .body("로그인이 필요합니다.");
         }
 
         Long loggedInUserId = loginUser.getId();
@@ -79,7 +99,7 @@ public class FollowController {
         // 경로와 로그인한 사람이 같은지 확인
         if (!userId.equals(loggedInUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("자기 ID로만 요청을 수락할 수 있습니다."));
+                    .body("자기 ID로만 요청을 수락할 수 있습니다.");
         }
 
         try {
@@ -90,17 +110,23 @@ public class FollowController {
             followService.acceptFollowRequest(followerId, followingId);
 
             // 친구 수락이 완료되면 200 OK 상태를 반환
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new FollowResponseMessageDto("친구 수락이 완료되었습니다."));
+            return ResponseEntity.ok("친구 수락이 완료되었습니다.");
 
+        } catch (IllegalStateException e) {
+            // 차단 상태
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            // 친구 요청이 없는 경우 403 Forbidden 상태 반환
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("친구 요청이 없습니다."));
+            String msg = e.getMessage();
+            if (msg.contains("이미 수락된")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(msg);
+            } else if (msg.contains("요청이 없습니다")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("친구 요청이 없습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(msg);
+            }
         } catch (Exception e) {
-            // 서버 오류 발생 시 500 Internal Server Error 상태 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FollowResponseMessageDto("서버 오류가 발생했습니다."));
+                    .body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -115,15 +141,14 @@ public class FollowController {
         // 로그인한 상태인지 확인
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new FollowResponseMessageDto("로그인이 필요합니다."));
+                    .body("로그인이 필요합니다.");
         }
 
         Long loggedInUserId = loginUser.getId();
-
         // 경로와 로그인한 사람이 같은지 확인
         if (!userId.equals(loggedInUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("자기 ID로만 요청을 거절할 수 있습니다."));
+                    .body("자기 ID로만 요청을 거절할 수 있습니다.");
         }
 
         try {
@@ -133,17 +158,14 @@ public class FollowController {
             followService.rejectFollowRequest(followId, userId);
 
             // 친구 요청 거절이 완료되면 200 OK 상태 반환
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new FollowResponseMessageDto("친구 요청이 거절되었습니다."));
-
+            return ResponseEntity.ok("친구 요청이 거절되었습니다.");
         } catch (IllegalArgumentException e) {
             // 친구 요청이 이미 수락된 상태일 때 발생한 예외 처리
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto(e.getMessage()));  // 수정된 메시지 출력
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             // 서버 오류 발생 시 500 Internal Server Error 상태 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FollowResponseMessageDto("서버 오류가 발생했습니다."));
+                    .body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -157,26 +179,32 @@ public class FollowController {
         Users loginUser = (Users) session.getAttribute("user");
         if (loginUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new FollowResponseMessageDto("로그인이 필요합니다."));
+                    .body("로그인이 필요합니다.");
         }
+
         Long loggedInUserId = loginUser.getId();
         if (!userId.equals(loggedInUserId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto("자기 ID로만 친구를 삭제할 수 있습니다."));
+                    .body("자기 ID로만 친구를 삭제할 수 있습니다.");
+        }
+
+        Long targetUserId = followRequestDto.getFollowId(); // 상대 사용자 ID
+
+        // 본인 아이디 삭제 방지
+        if (userId.equals(targetUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("본인 아이디는 삭제할 수 없습니다.");
         }
 
         try {
-            Long targetUserId = followRequestDto.getFollowId(); // 상대 사용자 ID
-            // 서비스 시그니처: (현재 유저, 상대 유저)
             followService.deleteFriend(userId, targetUserId);
-
-            return ResponseEntity.ok(new FollowResponseMessageDto("친구 삭제가 완료되었습니다."));
+            return ResponseEntity.ok("친구 삭제가 완료되었습니다.");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new FollowResponseMessageDto(e.getMessage()));
+            // "친구가 아닙니다", "대기 중은 삭제 불가" 등
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FollowResponseMessageDto("서버 오류가 발생했습니다."));
+                    .body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -188,12 +216,11 @@ public class FollowController {
             // 친구 목록 조회 서비스 호출
             List<FollowListDto> friends = followService.getFriendList(userId);
             // 친구 목록을 반환하며 200 OK 상태 반환
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(friends);
+            return ResponseEntity.ok(friends);
         } catch (Exception e) {
             // 서버 오류 발생 시 500 Internal Server Error 상태 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new FollowResponseMessageDto("서버 오류가 발생했습니다."));
+                    .body("서버 오류가 발생했습니다.");
         }
     }
 }

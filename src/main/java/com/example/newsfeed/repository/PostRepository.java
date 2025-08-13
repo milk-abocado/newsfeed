@@ -7,39 +7,59 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Posts, Long> {
 
-    // 삭제되지 않은 게시물만 단건 조회
+    // ===== 단건 조회: 삭제되지 않은 게시물만 =====
     Optional<Posts> findByIdAndIsDeletedFalse(Long id);
 
-    // 삭제되지 않은 게시물만 전체 조회
-    List<Posts> findAllByIsDeletedFalse();
-
-    // 팔로잉 + 본인 게시물 범위 조회 (정렬은 Pageable로 지정: 예) updatedAt DESC)
-    // 작성일(createdAt) 기간 필터: [start, end)
+    // ===== 뉴스피드 기본 정렬 (viewer 포함 userIds 범위 + 기간)
+    // 양방향 차단 제외(내가 차단했거나, 상대가 나를 차단했거나)
     @Query("""
            SELECT p FROM Posts p
            WHERE p.isDeleted = false
              AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :viewerId
+                 AND b1.targetUserId = p.user.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :viewerId
+             )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
            """)
     Page<Posts> findFeedByUserIdsAndDateRange(
+            @Param("viewerId") Long viewerId,
             @Param("userIds") List<Long> userIds,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             Pageable pageable
     );
 
-    // 좋아요 많은 순 (작성일 범위 + 좋아요 수 DESC + 보조정렬 updatedAt DESC)
+    // ===== 뉴스피드 좋아요 많은 순 (범위+기간)
+    // 양방향 차단 제외
     @Query(value = """
            SELECT p
            FROM Posts p
            WHERE p.isDeleted = false
              AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :viewerId
+                 AND b1.targetUserId = p.user.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :viewerId
+             )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
            ORDER BY (SELECT COUNT(pl) FROM PostLike pl WHERE pl.post = p) DESC,
@@ -50,10 +70,21 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
            FROM Posts p
            WHERE p.isDeleted = false
              AND p.user.id IN :userIds
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b1
+               WHERE b1.userId = :viewerId
+                 AND b1.targetUserId = p.user.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :viewerId
+             )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
            """)
     Page<Posts> findFeedByUserIdsAndDateRangeOrderByLikeCountDesc(
+            @Param("viewerId") Long viewerId,
             @Param("userIds") List<Long> userIds,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
@@ -61,9 +92,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
     );
 
     /**
-     * 기간 필터 + 기본 정렬(페이지 정렬 사용) + 내가 숨긴 글 제외 + 차단된 사용자 게시글 제외
+     * 기간 필터 + 기본 정렬(페이지 정렬 사용)
+     * + 내가 숨긴 글(PostHide) 제외
+     * + 양방향 차단 제외
      * - userIds: 내 ID + 내가 팔로우한 사용자 IDs
-     * - me: 현재 로그인 사용자 ID (숨김/차단 판단용)
+     * - me: 현재 로그인 사용자 ID
      */
     @Query("""
            SELECT p FROM Posts p
@@ -78,6 +111,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                SELECT 1 FROM BlockedUser b1
                WHERE b1.userId = :me
                  AND b1.targetUserId = p.user.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :me
              )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
@@ -91,7 +129,9 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
     );
 
     /**
-     * 기간 필터 + 좋아요 많은 순 + 내가 숨긴 글 제외 + 차단된 사용자 게시글 제외
+     * 기간 필터 + 좋아요 많은 순
+     * + 내가 숨긴 글(PostHide) 제외
+     * + 양방향 차단 제외
      */
     @Query(value = """
            SELECT p
@@ -107,6 +147,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                SELECT 1 FROM BlockedUser b1
                WHERE b1.userId = :me
                  AND b1.targetUserId = p.user.id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :me
              )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
@@ -128,6 +173,11 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
                WHERE b1.userId = :me
                  AND b1.targetUserId = p.user.id
              )
+             AND NOT EXISTS (
+               SELECT 1 FROM BlockedUser b2
+               WHERE b2.userId = p.user.id
+                 AND b2.targetUserId = :me
+             )
              AND (:start IS NULL OR p.createdAt >= :start)
              AND (:end   IS NULL OR p.createdAt <  :end)
            """)
@@ -139,7 +189,7 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
             Pageable pageable
     );
 
-    // 게시물 전체 조회: 숨김 + 차단된 사용자 게시글 제외
+    // ===== 게시물 전체 조회: 내가 숨긴 글 + 양방향 차단 제외
     @Query("""
        SELECT p
        FROM Posts p
@@ -156,9 +206,25 @@ public interface PostRepository extends JpaRepository<Posts, Long> {
          )
          AND NOT EXISTS (
            SELECT 1 FROM BlockedUser b2
-           WHERE b2.targetUserId = :me
-             AND b2.userId = p.user.id
+           WHERE b2.userId = p.user.id
+             AND b2.targetUserId = :me
          )
        """)
     Page<Posts> findAllVisibleToUser(@Param("me") Long me, Pageable pageable);
+
+    // ===== (추가) 팔로우 집합만 주는 버전: 양방향 차단 제외 (정렬은 pageable에서 지정)
+    @Query("""
+        select p from Posts p
+        where p.isDeleted = false
+          and p.user.id in :visibleAuthorIds
+          and p.user.id not in (
+              select bu.targetUserId from BlockedUser bu where bu.userId = :viewerId
+          )
+          and p.user.id not in (
+              select bu.userId from BlockedUser bu where bu.targetUserId = :viewerId
+          )
+    """)
+    Page<Posts> findFeedExcludingBlocked(@Param("viewerId") Long viewerId,
+                                         @Param("visibleAuthorIds") Collection<Long> visibleAuthorIds,
+                                         Pageable pageable);
 }

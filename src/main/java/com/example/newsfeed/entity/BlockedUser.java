@@ -26,8 +26,4 @@ public class BlockedUser {
     //차단당한 사람
     @Column(name = "target_user_id")
     private Long targetUserId;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
 }

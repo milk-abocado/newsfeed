@@ -63,4 +63,29 @@ public interface FollowerBlockRepository extends JpaRepository<BlockedUser, Long
      */
     @Query("select b.userId from BlockedUser b where b.targetUserId = :userId")
     List<Long> findUsersWhoBlocked(@Param("userId") Long userId);
+
+    /**
+     * 양방향 차단 여부 확인
+     * - a가 b를 차단했거나, b가 a를 차단했으면 true
+     */
+    default boolean existsEitherDirection(Long a, Long b) {
+        return existsByUserIdAndTargetUserId(a, b)
+                || existsByUserIdAndTargetUserId(b, a);
+    }
+
+    /**
+     * 단일 쿼리로 양방향 차단 여부 확인하고 싶을 때 사용
+     * - 성능/로그 편의를 위해 제공
+     */
+    @Query("""
+        select (count(b) > 0) from BlockedUser b
+        where (b.userId = :a and b.targetUserId = :b)
+           or (b.userId = :b and b.targetUserId = :a)
+    """)
+    boolean existsEitherDirectionQuery(@Param("a") Long a, @Param("b") Long b);
+
+    /**
+     * (편의) 특정 차단 레코드 삭제
+     */
+    void deleteByUserIdAndTargetUserId(Long userId, Long targetUserId);
 }

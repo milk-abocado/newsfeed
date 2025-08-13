@@ -36,11 +36,21 @@ public class UserService {
     // 프로필 조회
     @Transactional(readOnly = true)
     public UserProfileResponseDto getUserProfile(Long userId, Long loginUserId) {
-        // 내가 차단한 경우 → 바로 예외
-        if (followerBlockRepository.existsByUserIdAndTargetUserId(loginUserId, userId)) {
+        // 내가 차단한 경우
+        boolean iBlocked = followerBlockRepository
+                .existsByUserIdAndTargetUserId(loginUserId, userId);
+        if (iBlocked) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "차단한 사용자입니다.");
         }
 
+        // 상대가 나를 차단한 경우
+        boolean blockedMe = followerBlockRepository
+                .existsByUserIdAndTargetUserId(userId, loginUserId);
+        if (blockedMe) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "상대방이 당신을 차단했습니다.");
+        }
+
+        // 타겟 사용자 유효성
         Users user = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."
@@ -224,7 +234,7 @@ public class UserService {
         authRepository.save(users);
 
 
-        //4. 개인정보 null처리
+        //4. 개인정보 null 처리
         String randomPassword = UUID.randomUUID().toString();
 
         users.setName(null); //이름 삭제

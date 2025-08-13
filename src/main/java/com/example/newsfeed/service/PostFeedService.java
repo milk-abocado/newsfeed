@@ -107,55 +107,6 @@ public class PostFeedService {
         );
     }
 
-    // 로그인한 사용자 ID로 뉴스피드 조회 (팔로우한 사용자 + 본인)
-    // @param sort  "updated"(기본) | "likes"
-    // @param start 2024-05-01 또는 2024.05.01 (작성일 시작, 포함)
-    // @param end   2024-05-27 또는 2024.05.27 (작성일 끝, 포함)
-//    public PostFeedResponseDto getNewsfeed(Long userId, Pageable pageable, String sort, String start, String end) {
-//        if (userId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-//
-//        // 팔로잉 + 본인
-//        List<Long> followingUserIds = followRepository.findByFollowerIdAndStatus(userId, true)
-//                .stream()
-//                .map(Follows::getFollowingId)
-//                .collect(Collectors.toList());
-//        followingUserIds.add(userId);
-//
-//        // 날짜 파싱 (end는 +1일 00:00으로 만들어 [start, endExclusive) 범위)
-//        LocalDateTime startDt = parseDateNullable(start, true);
-//        LocalDateTime endExclusive = parseDateNullable(end, false);
-//
-//        Page<Posts> postsPage;
-//        if ("likes".equalsIgnoreCase(sort)) {
-//            // 좋아요 많은 순: 쿼리에서 ORDER BY 처리 → Pageable 정렬은 의미 없음
-//            Pageable noSortPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-//            postsPage = postRepository.findFeedByUserIdsAndDateRangeOrderByLikeCountDesc(
-//                    followingUserIds, startDt, endExclusive, noSortPageable
-//            );
-//        } else {
-//            // 수정일 최신순 (기본)
-//            Pageable updatedSort = PageRequest.of(
-//                    pageable.getPageNumber(), pageable.getPageSize(),
-//                    Sort.by(Sort.Direction.DESC, "updatedAt")
-//            );
-//            postsPage = postRepository.findFeedByUserIdsAndDateRange(
-//                    followingUserIds, startDt, endExclusive, updatedSort
-//            );
-//        }
-//
-//        List<PostFeedItemDto> postDtos = postsPage.getContent().stream()
-//                .map(PostFeedItemDto::fromEntity)   // 필요 시 likeCount 등 추가 필드도 여기서 채워도 됨
-//                .collect(Collectors.toList());
-//
-//        return new PostFeedResponseDto(
-//                postDtos,
-//                postsPage.getNumber(),
-//                postsPage.getSize(),
-//                postsPage.getTotalElements(),
-//                postsPage.getTotalPages()
-//        );
-//    }
-
     // ===== Helpers =====
 
     private LocalDateTime parseDateNullable(String s, boolean isStart) {

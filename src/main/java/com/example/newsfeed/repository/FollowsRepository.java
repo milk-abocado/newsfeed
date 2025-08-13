@@ -4,9 +4,8 @@ import com.example.newsfeed.entity.Follows;
 import com.example.newsfeed.entity.FollowsId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;       // 추가
-import org.springframework.data.repository.query.Param;     // 추가
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +22,7 @@ public interface FollowsRepository extends JpaRepository<Follows, FollowsId> {
     // 팔로우 중(=following) + 수락 상태 목록
     List<Follows> findByFollowingIdAndStatus(Long followingId, Boolean status);
 
-    // 두 사용자 사이에 어느 방향이든 관계가 있으면 가져오기(대기/수락 구분은 엔티티 status로 확인)
+    // 두 사용자 사이에 어느 방향이든 '어떤 상태든' 관계가 있으면 가져오기
     @Query("""
         select f
         from Follows f
@@ -31,6 +30,26 @@ public interface FollowsRepository extends JpaRepository<Follows, FollowsId> {
            or (f.followerId = :b and f.followingId = :a)
         """)
     Optional<Follows> findFriendshipBetween(@Param("a") Long a, @Param("b") Long b);
+
+    // 두 사용자 사이에 '친구(수락 true)' 관계가 있는지 확인
+    @Query("""
+        select (count(f) > 0)
+        from Follows f
+        where f.status = true
+          and ((f.followerId = :a and f.followingId = :b)
+            or (f.followerId = :b and f.followingId = :a))
+        """)
+    boolean existsAcceptedBetween(@Param("a") Long a, @Param("b") Long b);
+
+    // 두 사용자 사이에 '대기 중(false)' 요청이 있는지 확인
+    @Query("""
+        select (count(f) > 0)
+        from Follows f
+        where f.status = false
+          and ((f.followerId = :a and f.followingId = :b)
+            or (f.followerId = :b and f.followingId = :a))
+        """)
+    boolean existsPendingBetween(@Param("a") Long a, @Param("b") Long b);
 
     // === ID 리스트 조회 (목록/뉴스피드용) ===
     // 내가 팔로우하는 사용자 ID들
@@ -82,4 +101,35 @@ public interface FollowsRepository extends JpaRepository<Follows, FollowsId> {
     Page<UserSummary> findFollowerUsers(@Param("userId") Long userId,
                                         @Param("status") Boolean status,
                                         Pageable pageable);
+
+    // ===================== 차단 시 사용할 정리용 쿼리 =====================
+
+    // 양방향 모든 관계(대기/수락 무관) 삭제 - 차단할 때 호출
+    @Modifying
+    @Query("""
+      delete from Follows f
+       where (f.followerId = :a and f.followingId = :b)
+          or (f.followerId = :b and f.followingId = :a)
+    """)
+    void deleteAnyRelationBetween(@Param("a") Long a, @Param("b") Long b);
+
+    // (선택) 대기 중(false)만 삭제하고 싶을 때
+    @Modifying
+    @Query("""
+      delete from Follows f
+       where f.status = false and
+            ((f.followerId = :a and f.followingId = :b)
+          or (f.followerId = :b and f.followingId = :a))
+    """)
+    void deletePendingBetween(@Param("a") Long a, @Param("b") Long b);
+
+    // (선택) 수락(true)만 끊고 싶을 때
+    @Modifying
+    @Query("""
+      delete from Follows f
+       where f.status = true and
+            ((f.followerId = :a and f.followingId = :b)
+          or (f.followerId = :b and f.followingId = :a))
+    """)
+    void deleteAcceptedBetween(@Param("a") Long a, @Param("b") Long b);
 }
