@@ -85,3 +85,14 @@ CREATE TABLE follows
     FOREIGN KEY (follower_id) REFERENCES users(id),
     FOREIGN KEY (following_id) REFERENCES users(id)
 );
+
+
+CREATE TABLE user_block
+(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    target_user_id BIGINT NOT NULL,
+    UNIQUE (user_id, target_user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (target_user_id) REFERENCES users(id)
+);
