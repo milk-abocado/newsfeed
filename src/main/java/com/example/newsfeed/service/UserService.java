@@ -235,5 +235,5 @@ public class UserService {
         users.setSecurityAnswer(null);
         users.setUpdatedAt(LocalDateTime.now());
     }
-}
+    }
 

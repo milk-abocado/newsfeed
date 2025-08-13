@@ -1,7 +1,7 @@
 package com.example.newsfeed.service;
 
 import com.example.newsfeed.dto.BlockRequestDto;
-import com.example.newsfeed.entity.BlockedUser;
+import com.example.newsfeed.entity.UserBlock;
 import com.example.newsfeed.repository.FollowerBlockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,10 +18,10 @@ public class FollowerBlockService {
     //1.사용자 차단
     public String blockUser(Long userId, BlockRequestDto requestDto) {
         if (FollowerBlockRepository.existsByUserIdAndTargetUserId(userId, requestDto.getTargetUserId())) {
-            throw new IllegalStateException("이미 차단한 사용자입니다."); //예외
+            throw new IllegalStateException("이미 차단한 사용자입니다."); //중복 차단 불가(예외)
         }
 
-        BlockedUser blockedUser = BlockedUser.builder()
+        UserBlock blockedUser = UserBlock.builder()
                 .userId(userId) //차단한 사람
                 .targetUserId(requestDto.getTargetUserId()) //차단당한 사람
                 .build();
@@ -32,7 +32,7 @@ public class FollowerBlockService {
     //2.사용자 차단 해제
     //2-1)해당 사용자 검색
     public String unblockUser(Long userId, BlockRequestDto requestDto) {
-        Optional<BlockedUser> blockedUserOptional =
+        Optional<UserBlock> blockedUserOptional =
                 followerBlockRepository.findByUserIdAndTargetUserId(userId, requestDto.getTargetUserId());
         //2-2)예외(차단 기록 X)
         if (blockedUserOptional.isEmpty()) {
@@ -43,12 +43,16 @@ public class FollowerBlockService {
     }
 
     //3.차단한 사용자 목록 조회
-    public List<BlockedUser> getBlockedUsers(Long userId) {
+    public List<UserBlock> getBlockedUsers(Long userId) {
         return followerBlockRepository.findAllByUserId(userId);
     }
 
     //4.특정 사용자 차단 여부 확인
     public boolean isBlocked(Long userId, Long targetUserId) {
         return FollowerBlockRepository.existsByUserIdAndTargetUserId(userId, targetUserId);
+    }
+
+    public Long getUserIdByUsername(String name) {
+        return null;
     }
 }

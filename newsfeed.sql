@@ -92,6 +92,7 @@ CREATE TABLE user_block
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     target_user_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, target_user_id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (target_user_id) REFERENCES users(id)
