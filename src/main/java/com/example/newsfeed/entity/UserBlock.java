@@ -3,16 +3,18 @@ package com.example.newsfeed.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
-@Table(name = "blocked_users")
+@Table(name = "user_block",
+        uniqueConstraints =  { @UniqueConstraint(name = "uq_block", columnNames = {"user_id", "target_user_id"})
+        })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BlockedUser {
+public class UserBlock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +24,9 @@ public class BlockedUser {
     @Column(name = "user_id")
     private Long userId;
     //차단당한 사람
-    @Column(name = "target_user_id")
+    @Column (name = "target_user_id")
     private Long targetUserId;
+
+    @Column(nullable = false)
+    private Instant createdAt = Instant.now();
 }
