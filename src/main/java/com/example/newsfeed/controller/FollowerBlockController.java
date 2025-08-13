@@ -23,7 +23,7 @@ public class FollowerBlockController {
     //공통: Principal에서 userId 안전 추출 필요
     private Long currentUserId(Principal principal) {
         if (principal == null || principal.getName() == null) {
-            throw new ResponseStatusException((HttpStatus.UNAUTHORIZED, "UNAUTHORIZED");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED");
         }
         String name = principal.getName();
         try {
