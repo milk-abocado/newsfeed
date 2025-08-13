@@ -2,9 +2,12 @@ package com.example.newsfeed.service;
 
 import com.example.newsfeed.dto.BlockRequestDto;
 import com.example.newsfeed.entity.UserBlock;
+import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.repository.FollowerBlockRepository;
+import com.example.newsfeed.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +17,7 @@ import java.util.Optional;
 public class FollowerBlockService {
     private final FollowerBlockService followerBlockService;
     private final FollowerBlockRepository followerBlockRepository;
+    private final UserRepository userRepository;
 
     //1.사용자 차단
     public String blockUser(Long userId, BlockRequestDto requestDto) {
@@ -52,7 +56,11 @@ public class FollowerBlockService {
         return FollowerBlockRepository.existsByUserIdAndTargetUserId(userId, targetUserId);
     }
 
+    //username -> userId 매핑 (principal.getName()이 username일 때 사용)
+    @Transactional(readOnly = true)
     public Long getUserIdByUsername(String name) {
-        return null;
+        return userRepository.findByUsername(name)
+                .map(Users::getId)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
     }
 }
