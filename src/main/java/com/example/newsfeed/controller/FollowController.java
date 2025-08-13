@@ -2,7 +2,6 @@ package com.example.newsfeed.controller;
 
 import com.example.newsfeed.dto.FollowListDto;
 import com.example.newsfeed.dto.FollowRequestDto;
-import com.example.newsfeed.dto.FollowResponseMessageDto;
 import com.example.newsfeed.entity.Users;
 import com.example.newsfeed.service.FollowService;
 import jakarta.servlet.http.HttpSession;
@@ -103,11 +102,12 @@ public class FollowController {
         }
 
         try {
-            Long followingId = userId;                        // 수락하는 사람의 ID (현재 사용자의 ID)
+            //Long followingId = userId;                        // 수락하는 사람의 ID (현재 사용자의 ID)
             Long followerId = followRequestDto.getFollowId(); // 친구 요청을 보낸 사람의 ID
 
             // 친구 요청 수락 서비스 호출
-            followService.acceptFollowRequest(followerId, followingId);
+            //followService.acceptFollowRequest(followerId, followingId);
+            followService.acceptFollowRequest(followerId, userId);
 
             // 친구 수락이 완료되면 200 OK 상태를 반환
             return ResponseEntity.ok("친구 수락이 완료되었습니다.");
