@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -82,6 +83,11 @@ public class AuthController {
         String emailAddr = req.get("email");
         if (emailAddr == null || emailAddr.isBlank()) {
             return ResponseEntity.badRequest().body("이메일을 입력해주세요.");
+        }
+
+        Optional<Email> optionalEmail = emailRepository.findByEmail(emailAddr);
+        if (optionalEmail.isPresent() && optionalEmail.get().isVerified()) {
+            return ResponseEntity.badRequest().body("이미 인증된 이메일입니다.");
         }
 
         String token = generate6DigitCode();
