@@ -4,7 +4,7 @@
 > 빠르게 전하는 소식, 함께 나누는 소통의 공간
 
 <img width="406" height="406" alt="Image" src="https://github.com/user-attachments/assets/8f84390a-ecc1-4431-a7bc-77132a9310dd" />
----
+
 
 ## 📝 프로젝트 개요
 - Spring Boot 기반의 **SNS 백엔드 서버**로,  
@@ -17,6 +17,9 @@
 - **Controller – Service – Repository – Entity – DTO**의 계층형 아키텍처를 적용하여  
 책임을 명확히 분리하고 유지보수성을 높였습니다.
 
+---
+## 🔗 REST API 설계
+- 프로젝트의 API는 RESTful 규칙을 준수하여, 리소스 중심의 경로 설계와 표준 HTTP 메서드(`GET`, `POST`, `PATCH`, `DELETE`) 매핑을 적용하였습니다.  
 ---
 
 ## 💾 데이터베이스 & 인증
@@ -256,7 +259,9 @@ cd newsfeed
 ---
 
 ## 🎨 와이어프레임
-- **[Figma](https://www.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&m=dev&t=xdSXdwKtkOLnQVvn-1)**  
+- **[Figma](https://www.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&m=dev&t=xdSXdwKtkOLnQVvn-1)**
+
+---
 
 ## 📏 Team Code Convention
 
