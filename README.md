@@ -206,7 +206,47 @@ cd newsfeed
 ---
 
 ## 📌 API
-(추가 예정)
+
+| 기능 | 기본 URL | Method | 전체 URL |
+|------|----------|--------|----------|
+| 게시물 수정 | /posts | PATCH | /posts/{postId} |
+| 게시물 작성 (로그인한 사용자만 가능) | /posts | POST | /posts |
+| 게시물 삭제 (soft delete) | /posts | DELETE | /posts/{postId} |
+| 게시물 단건 조회 | /posts | GET | /posts/{postId} |
+| 게시물 전체 조회 (페이징 지원) | /posts | GET | /posts |
+| 회원 가입 | /auth | POST | /auth/signup |
+| 이메일 인증 발송 | /auth | POST | /auth/send |
+| 이메일 인증 수락 | /auth | GET | /auth/verify |
+| 로그인 | /auth | POST | /auth/login |
+| 로그아웃 | /auth | POST | /auth/logout |
+| 친구 요청 | /followers | POST | /followers/{userId}/following |
+| 친구 수락 | /followers | PATCH | /followers/{userId}/accept |
+| 친구 거절 | /followers | PATCH | /followers/{userId}/reject |
+| 친구 삭제 | /followers | DELETE | /followers/{userId} |
+| 친구 리스트 조회 | /followers | GET | /followers/{userId}/follows |
+| 프로필 수정 | /users | PATCH | /users/{userId} |
+| 본인 비밀번호 수정 | /users | PATCH | /users/{userId}/change |
+| 회원 탈퇴 | /users | DELETE | /users/{userId}/delete |
+| 회원 정보 조회 | /users | GET | /users/{userId} |
+| 댓글 작성 | /comments | POST | /posts/{postId}/comments |
+| 댓글 조회 | /comments | GET | /posts/{postId}/comments |
+| 댓글 수정 | /comments | PATCH | /comments/{commentId} |
+| 댓글 삭제 | /comments | DELETE | /comments/{commentId} |
+| 게시물 좋아요 | /likes | POST | /posts/{postId}/likes |
+| 게시물 좋아요 취소 | /likes | DELETE | /posts/{postId}/likes |
+| 댓글 좋아요 | /likes | POST | /comments/{commentId}/likes |
+| 댓글 좋아요 취소 | /likes | DELETE | /comments/{commentId}/likes |
+| 게시물 차단 | /posts | POST | /posts/{postId}/hide |
+| 친구 차단 | /followers | POST | /block |
+| 친구 차단 해제 | /followers | POST | /unblock |
+| 차단한 사용자 목록 조회 | /followers | GET | /blocked |
+| 특정 사용자 차단 여부 확인 | /followers | GET | /blocked/{targetUserId} |
+| 팔로잉 목록 조회 | /followers | GET | /follows/{userId}/following |
+| 팔로워 목록 조회 | /followers | GET | /follows/{userId}/followers |
+| 상대와의 팔로우 상태 조회 (단건) | /followers | GET | /follows/status/{targetId} |
+| 인증코드 발송 | /auth | POST | /auth/password/session/forget |
+| 인증코드 검증 | /auth | POST | /auth/password/session/verify |
+| 비밀번호 재설정 | /auth | POST | /auth/password/session/reset |
 
 ---
 
