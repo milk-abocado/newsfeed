@@ -1,5 +1,9 @@
-# 📌 Newsfeed (뉴스피드)
+# 📌 SFeed (스피드)
 
+> **S**peed x **S**peak x News**feed**  
+> 빠르게 전하는 소식, 함께 나누는 소통의 공간
+
+<img width="406" height="406" alt="Image" src="https://github.com/user-attachments/assets/8f84390a-ecc1-4431-a7bc-77132a9310dd" />
 ---
 
 ## 📝 프로젝트 개요
@@ -202,20 +206,17 @@ cd newsfeed
 ---
 
 ## 📌 API
-- (추가 예정)
+(추가 예정)
 
 ---
 
 ## 🗂 ERD
-- (추가 예정)
+<img width="1856" height="1280" alt="Image" src="https://github.com/user-attachments/assets/ec798339-93d7-41ff-8de1-06d0a004513c" />
 
 ---
 
 ## 🎨 와이어프레임
-- 사진
-- **Figma**: [여기에 피그마 링크 입력](https://www.figma.com/file/your-figma-link)
-
----
+- **[Figma](https://www.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&m=dev&t=xdSXdwKtkOLnQVvn-1)**  
 
 ## 📏 Team Code Convention
 

@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 public class AuthService {
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
 
     // password 형식
     private static final Pattern password_Pattern = Pattern.compile("^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$");
@@ -36,11 +35,7 @@ public class AuthService {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
-        if (!emailService.isEmailVerified(request.getEmail())) {
-            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
-        }
-
-        if(!password_Pattern.matcher(request.getPassword()).matches()) {
+        if (!password_Pattern.matcher(request.getPassword()).matches()) {
             throw new IllegalArgumentException("비밀번호는 영문 + 숫자 + 특수문자를 최소 1글자씩 포함하며, 8자 이상이어야 합니다.");
         }
 
