@@ -212,7 +212,7 @@ cd newsfeed
 ---
 
 ## 🎨 와이어프레임
-- **Figma**: https://www.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&m=dev&t=xdSXdwKtkOLnQVvn-1
+- **[Figma](https://www.figma.com/design/slfS97YvREXePhMzGkCR7j/%EB%89%B4%EC%8A%A4%ED%94%BC%EB%93%9C?node-id=0-1&m=dev&t=xdSXdwKtkOLnQVvn-1)**  
 
 ## 📏 Team Code Convention
 
