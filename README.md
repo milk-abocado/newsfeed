@@ -92,107 +92,136 @@
 
 ## 📂 프로젝트 구조
 
-```bash
+```
 newsfeed/
 └── src/
     └── main/
         ├── java/
         │   └── com/example/newsfeed/
-        │       ├── NewsfeedApplication.java
-        │       ├── config/                       # 전역 설정 (CORS, 인터셉터 등)
-        │       ├── controller/                   # API 계층
-        │       │   ├── AuthController.java
-        │       │   ├── CommentController.java
-        │       │   ├── FollowController.java
-        │       │   ├── FollowerBlockController.java
-        │       │   ├── FollowReadController.java
-        │       │   ├── LikeController.java
-        │       │   ├── PostController.java
-        │       │   ├── PostDeleteController.java
-        │       │   ├── PostFeedController.java
-        │       │   ├── PostHideController.java
-        │       │   ├── PostUpdateController.java
-        │       │   ├── SessionPasswordResetController.java
-        │       │   └── UserController.java
-        │       ├── dto/                          # 요청 / 응답 DTO
-        │       │   ├── AuthLoginRequestDto.java
-        │       │   ├── AuthRequestDto.java
-        │       │   ├── BlockRequestDto.java
-        │       │   ├── ChangePasswordRequestDto.java
-        │       │   ├── CommentsPageResponseDto.java
-        │       │   ├── CommentsRequestDto.java
-        │       │   ├── CommentsResponseDto.java
-        │       │   ├── DeleteUsersRequest.java
-        │       │   ├── EmailRequestDto.java
-        │       │   ├── FollowListDto.java
-        │       │   ├── FollowRequestDto.java
-        │       │   ├── FollowResponseDto.java
-        │       │   ├── FollowResponseMessageDto.java
-        │       │   ├── FollowStatusDto.java
-        │       │   ├── LikeStatusResponseDto.java
-        │       │   ├── PasswordResetForgotRequestDto.java
-        │       │   ├── PasswordResetResetRequestDto.java
-        │       │   ├── PasswordResetVerifyRequestDto.java
-        │       │   ├── PostFeedItemDto.java
-        │       │   ├── PostFeedResponseDto.java
-        │       │   ├── PostHideResponseDto.java
-        │       │   ├── PostPageResponseDto.java
-        │       │   ├── PostRequestDto.java
-        │       │   ├── PostResponseDto.java
-        │       │   ├── PostUpdateRequestDto.java
-        │       │   ├── UserProfileResponseDto.java
-        │       │   ├── UserProfileUpdateRequestDto.java
-        │       │   ├── UserSummaryDto.java
-        │       │   └── UserSummaryPageResponseDto.java
-        │       ├── entity/                       # JPA 엔티티
-        │       │   ├── BlockedUser.java
-        │       │   ├── CommentLike.java
-        │       │   ├── Comments.java
-        │       │   ├── Email.java
-        │       │   ├── Follows.java
-        │       │   ├── FollowsId.java
-        │       │   ├── PostHide.java
-        │       │   ├── PostImages.java
-        │       │   ├── PostLike.java
-        │       │   ├── Posts.java
-        │       │   ├── ProfileUpdateHistory.java
-        │       │   └── Users.java
-        │       ├── exception/                    # 커스텀 예외
+        │       ├── config/                                 
+        │       ├── controller/                               # Controller 레이어: 요청 처리 및 Service 호출
+        │       │   ├── auth/
+        │       │   │   └── AuthController.java
+        │       │   ├── comment/
+        │       │   │   └── CommentController.java
+        │       │   ├── follow/
+        │       │   │   ├── FollowController.java
+        │       │   │   ├── FollowerBlockController.java
+        │       │   │   └── FollowReadController.java
+        │       │   ├── like/
+        │       │   │   └── LikeController.java
+        │       │   ├── password/
+        │       │   │   └── SessionPasswordResetController.java
+        │       │   ├── post/
+        │       │   │   ├── PostController.java
+        │       │   │   ├── PostFeedController.java
+        │       │   │   └── PostHideController.java
+        │       │   └── user/
+        │       │       └── UserController.java
+        │       ├── dto/                                      # DTO 레이어: 요청/응답 데이터 전달 객체
+        │       │   ├── auth/
+        │       │   │   ├── AuthLoginRequestDto.java
+        │       │   │   └── AuthRequestDto.java
+        │       │   ├── comment/
+        │       │   │   ├── CommentsPageResponseDto.java
+        │       │   │   ├── CommentsRequestDto.java
+        │       │   │   └── CommentsResponseDto.java
+        │       │   ├── follow/
+        │       │   │   ├── BlockRequestDto.java
+        │       │   │   ├── BlockResponseDto.java
+        │       │   │   ├── FollowListDto.java
+        │       │   │   ├── FollowRequestDto.java
+        │       │   │   ├── FollowResponseDto.java
+        │       │   │   ├── FollowResponseMessageDto.java
+        │       │   │   └── FollowStatusDto.java
+        │       │   ├── like/
+        │       │   │   └── LikeStatusResponseDto.java
+        │       │   ├── password/
+        │       │   │   ├── ChangePasswordRequestDto.java
+        │       │   │   ├── PasswordResetForgotRequestDto.java
+        │       │   │   ├── PasswordResetRequestDto.java
+        │       │   │   └── PasswordResetVerifyRequestDto.java
+        │       │   ├── post/
+        │       │   │   ├── PostFeedItemDto.java
+        │       │   │   ├── PostFeedResponseDto.java
+        │       │   │   ├── PostHideResponseDto.java
+        │       │   │   ├── PostPageResponseDto.java
+        │       │   │   ├── PostRequestDto.java
+        │       │   │   ├── PostResponseDto.java
+        │       │   │   └── PostUpdateRequestDto.java
+        │       │   └── user/
+        │       │       ├── DeleteUsersRequest.java
+        │       │       ├── UserProfileResponseDto.java
+        │       │       ├── UserProfileUpdateRequestDto.java
+        │       │       ├── UserSummaryDto.java
+        │       │       └── UserSummaryPageResponseDto.java
+        │       ├── entity/                                   # Entity 레이어: JPA 엔티티 클래스
+        │       │   ├── comment/
+        │       │   │   └── Comments.java
+        │       │   ├── follow/
+        │       │   │   ├── Follows.java
+        │       │   │   └── FollowsId.java
+        │       │   ├── like/
+        │       │   │   ├── CommentLike.java
+        │       │   │   └── PostLike.java
+        │       │   ├── post/
+        │       │   │   ├── PostHide.java
+        │       │   │   ├── PostImages.java
+        │       │   │   └── Posts.java
+        │       │   └── user/
+        │       │       ├── BlockedUser.java
+        │       │       ├── Email.java
+        │       │       ├── ProfileUpdateHistory.java
+        │       │       └── Users.java
+        │       ├── exception/                                # 예외 클래스: 일부 커스텀 예외 처리
         │       │   ├── AlreadyDeletedException.java
         │       │   ├── InvalidCredentialsException.java
         │       │   └── PasswordRequiredException.java
-        │       ├── repository/                   # 데이터 접근 계층
-        │       │   ├── AuthRepository.java
-        │       │   ├── CommentLikeRepository.java
-        │       │   ├── CommentRepository.java
-        │       │   ├── EmailRepository.java
-        │       │   ├── FollowerBlockRepository.java
-        │       │   ├── FollowsRepository.java
-        │       │   ├── PostImageRepository.java
-        │       │   ├── PostLikeRepository.java
-        │       │   ├── PostRepository.java
-        │       │   ├── ProfileUpdateHistoryRepository.java
-        │       │   ├── UserRepository.java
-        │       │   └── UserSummary.java
-        │       └── service/                      # 비즈니스 로직
-        │           ├── AuthService.java
-        │           ├── CommentService.java
-        │           ├── EmailService.java
-        │           ├── FollowerBlockService.java
-        │           ├── FollowReadService.java
-        │           ├── FollowService.java
-        │           ├── LikeService.java
-        │           ├── MailService.java
-        │           ├── PostDeleteService.java
-        │           ├── PostFeedService.java
-        │           ├── PostHideService.java
-        │           ├── PostService.java
-        │           ├── PostUpdateService.java
-        │           └── UserService.java
+        │       ├── repository/                               # Repository 레이어: DB 접근
+        │       │   ├── auth/
+        │       │   │   └── AuthRepository.java
+        │       │   ├── comment/
+        │       │   │   └── CommentRepository.java
+        │       │   ├── follow/
+        │       │   │   ├── FollowerBlockRepository.java
+        │       │   │   └── FollowsRepository.java
+        │       │   ├── like/
+        │       │   │   ├── CommentLikeRepository.java
+        │       │   │   └── PostLikeRepository.java
+        │       │   ├── post/
+        │       │   │   ├── PostImageRepository.java
+        │       │   │   └── PostRepository.java
+        │       │   └── user/
+        │       │       ├── EmailRepository.java
+        │       │       ├── ProfileUpdateHistoryRepository.java
+        │       │       ├── UserRepository.java
+        │       │       └── UserSummary.java
+        │       └── service/                                  # Service 레이어: 비즈니스 로직 처리
+        │           ├── auth/
+        │           │   └── AuthService.java
+        │           ├── comment/
+        │           │   └── CommentService.java
+        │           ├── follow/
+        │           │   ├── FollowerBlockService.java
+        │           │   ├── FollowReadService.java
+        │           │   └── FollowService.java
+        │           ├── like/
+        │           │   └── LikeService.java
+        │           ├── post/
+        │           │   ├── PostDeleteService.java
+        │           │   ├── PostFeedService.java
+        │           │   ├── PostHideService.java
+        │           │   ├── PostService.java
+        │           │   └── PostUpdateService.java
+        │           └── user/
+        │               ├── EmailService.java
+        │               ├── MailService.java
+        │               └── UserService.java
+        │       └── NewsfeedApplication.java                  # 메인 실행 클래스
         └── resources/
-            ├── application.properties
-            └── templates/                        # Thymeleaf 템플릿
+            └── application.properties
 ```
+
 ---
 
 ## 🚀 실행 방법
