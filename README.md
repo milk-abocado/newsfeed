@@ -1,4 +1,8 @@
 # 📌 SFeed (스피드)
+
+> **S**peed x **S**peak x News**feed**  
+> 빠르게 전하는 소식, 함께 나누는 소통의 공간
+
 <img width="406" height="406" alt="Image" src="https://github.com/user-attachments/assets/8f84390a-ecc1-4431-a7bc-77132a9310dd" />
 ---
 
