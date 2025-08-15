@@ -89,6 +89,10 @@
 - 상대방과의 팔로우 상태 조회 (단건)
 
 ---
+## 🎥 시연 영상
+[![영상](https://img.youtube.com/vi/xbIlyOCpZjo/0.jpg)](https://youtu.be/xbIlyOCpZjo)
+
+---
 
 ## 📂 프로젝트 구조
 
