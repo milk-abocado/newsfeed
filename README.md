@@ -313,15 +313,4 @@ cd newsfeed
 - ⚡️ improve: 기능 개선
 - 🔖 merge: 구현 기능 병합
 
-### 코드 스타일
-1. DTO로 입출력 분리
-2. Controller는 서비스 호출 및 DTO 변환만 담당
-3. Service는 별도의 인터페이스 사용 X (필요 시 논의 후 적용)
-4. 비즈니스 로직에서 중복 메서드는 추출하여 재사용
-
----
-
-## 🐞 Troubleshooting
-- 추후 추가
-
 ---
